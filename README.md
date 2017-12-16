@@ -23,8 +23,7 @@ This survival environment consists of a swarm of non-colliding "bad" particles m
 
 ## Escape (single-agent environment)
 
-This environment starts with the agent at the left side of the map. The goal of the agent is to make it to the right side of the map as fast as possible without touching any "bad" particles. Unlike the survival environment where the particles move with constant velocity based on their initial conditions, this environment allows for "bad" particles to continually chase the agent. 
-
+This environment starts with the agent at the left side of the box. The goal of the agent is to make it to the right side of the box as fast as possible without touching any "bad" particles. Unlike the survival environment where the particles move with constant velocity based on their initial conditions, this environment allows for "bad" particles to continually chase the agent. 
 
 #### Reward scheme: 
 * -1 for every time step
@@ -42,7 +41,6 @@ This environment starts with the agent at the left side of the map. The goal of 
 </p>
 
 
-
 ## Bump (multi-agent environment)
 
 This environment starts with two agents standing at opposite edges of the box, and they are rewarded for x-displacement towards the other edge. There is also small penalty at every time step for not reaching a non-terminal state.
@@ -54,25 +52,25 @@ The termination condition for the episode is when any agent reaches its goal, th
 2. The competing agent reaching its goal equates to early termination of the agent in reaching its own goal and collecting as much x-displacement reward
 
 
-### Usage:
+### Usage
 
 Run the command
 
 > python XY_universe.py
 
-### Libraries required:
+### Libraries required
 
 * keras, numpy, scipy, matplotlib
 
 ### Relevant sources
 
-* Karpathy's Waterworld simulation: http://cs.stanford.edu/people/karpathy/reinforcejs/waterworld.html
+* [Karpathy's Waterworld simulation](http://cs.stanford.edu/people/karpathy/reinforcejs/waterworld.html)
 
-* "Emergent Complexity via Multi-Agent Competition" (Bansal et al): https://arxiv.org/abs/1710.03748
+* ["Emergent Complexity via Multi-Agent Competition" (Bansal et al)](https://arxiv.org/abs/1710.03748)
 
-* "Multiagent Cooperation and Competition with Deep Reinforcement Learning" (Tampuu et al): https://arxiv.org/abs/1511.08779
+* ["Multiagent Cooperation and Competition with Deep Reinforcement Learning" (Tampuu et al)](https://arxiv.org/abs/1511.08779)
 
-* "Multi-Agent Reinforcement Learning: Independent vs Cooperative Agents" (Tan): https://pdfs.semanticscholar.org/b3fc/56876ad1cdf35ad4af13b991bbb24d219bd9.pdf
+* ["Multi-Agent Reinforcement Learning: Independent vs Cooperative Agents" (Tan)](https://pdfs.semanticscholar.org/b3fc/56876ad1cdf35ad4af13b991bbb24d219bd9.pdf)
 
 ### Authors:
 
