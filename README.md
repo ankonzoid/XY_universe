@@ -1,8 +1,6 @@
-# XY Universe: a 2D particle environment for training agents
+# XY Universe: a 2D particle environment for Deep Reinforcement Learning
 
-We provide here a 2D XY platform of particle environments for training agents to learn strategies to beat a game.
- 
- demonstrate both intuitive and non-trivial tactics that can form under the reinforcement learning framework.
+We provide here a collection of 2D particle environments for training your agents. Much of the structure is inspired by OpenGym.
 
 ## Environments
 
@@ -10,14 +8,14 @@ We provide here a 2D XY platform of particle environments for training agents to
 This survival environment has the simple goal of keeping the agent alive by not letting it get touched by any "bad" particles. This survival environment was inspired by [Karpathy's Waterworld environment](http://cs.stanford.edu/people/karpathy/reinforcejs/waterworld.html) where the goal was to dodge the "bad" particles and eat "good" particles. 
 
 #### Reward system: 
-* +1 reward every time step
+* +1 reward for every time step
 * +100 for eating a "good" particle
 * -100 for eating a "bad" particle
 
 #### Episode termination condition:
-Upon collision with any "bad" particle
+* Upon collision with any "bad" particle
 
-#### Example video:
+#### Example videos:
 
 <p align="center">
 <img src="https://github.com/ankonzoid/XY_universe/blob/master/gifs/survival.gif" width="45%">
@@ -27,12 +25,6 @@ Upon collision with any "bad" particle
 
 
 ### Escape to the right
-
-<p align="center">
-<img src="https://github.com/ankonzoid/XY_universe/blob/master/gifs/prison_escape.gif" width="45%">
-<img src="https://github.com/ankonzoid/XY_universe/blob/master/gifs/pass_by.gif" width="45%">
-</p>
-
 
 ### Bump
 
@@ -45,11 +37,28 @@ The termination condition for the episode is when any agent reaches its goal, th
 2) The competing agent reaching its goal equates to early termination of the agent in reaching its own goal and collecting as much x-displacement reward
 
 Reward system: 
-dx reward for x-displacement towards its goal
--1 reward for existence at each timestep
 
-Termination:
-Upon reaching its goal
+-1 reward for existence at ea
+
+#### Reward system: 
+* -1 penalty for every time step
+* dx (x-displacement) reward towards goal
+* +100 for eating a "good" particle
+* -100 for eating a "bad" particle
+
+#### Episode termination condition:
+* Upon reaching its goal of escaping to the right
+* Upon collision with any "bad" particle
+
+#### Example videos:
+
+<p align="center">
+<img src="https://github.com/ankonzoid/XY_universe/blob/master/gifs/prison_escape.gif" width="45%">
+<img src="https://github.com/ankonzoid/XY_universe/blob/master/gifs/pass_by.gif" width="45%">
+</p>
+
+
+
 
 
 ### Usage:
