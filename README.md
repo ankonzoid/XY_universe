@@ -17,8 +17,8 @@ This survival environment consists of a swarm of non-colliding "bad" particles m
 #### Example videos:
 
 <p align="center">
-<img src="https://github.com/ankonzoid/XY_universe/blob/master/gifs/survival.gif" width="45%">
-<img src="https://github.com/ankonzoid/XY_universe/blob/master/gifs/waterworld.gif" width="45%">
+<img src="https://github.com/ankonzoid/XY_universe/blob/master/gifs/survival1.gif" width="45%">
+<img src="https://github.com/ankonzoid/XY_universe/blob/master/gifs/survival2.gif" width="45%">
 </p>
 
 ## Escape (single-agent environment)
@@ -36,8 +36,8 @@ This environment starts with the agent at the left side of the box. The goal of 
 #### Example videos:
 
 <p align="center">
-<img src="https://github.com/ankonzoid/XY_universe/blob/master/gifs/prison_escape.gif" width="45%">
-<img src="https://github.com/ankonzoid/XY_universe/blob/master/gifs/pass_by.gif" width="45%">
+<img src="https://github.com/ankonzoid/XY_universe/blob/master/gifs/escape1.gif" width="45%">
+<img src="https://github.com/ankonzoid/XY_universe/blob/master/gifs/escape2.gif" width="45%">
 </p>
 
 
@@ -50,6 +50,21 @@ This environment starts with two agents standing at opposite edges of the box, a
 2. All particles now perform elastic collisions with eachother.
 
 This environment naturally exhibits competition because the agents should desire early termination towards their respective goals, which in turn will end their competing agent's reward collection prematurely.
+
+#### Reward scheme: 
+* -1 for every time step
+* dx (x-displacement) reward towards goal
+
+#### Episode termination condition:
+* Upon reaching its goal of escaping to the left/right
+
+#### Example videos:
+
+<p align="center">
+<img src="https://github.com/ankonzoid/XY_universe/blob/master/gifs/bump1.gif" width="45%">
+<img src="https://github.com/ankonzoid/XY_universe/blob/master/gifs/bump2.gif" width="45%">
+</p>
+
 
 ### Usage
 
