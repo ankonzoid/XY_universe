@@ -43,14 +43,13 @@ This environment starts with the agent at the left side of the box. The goal of 
 
 ## Bump (multi-agent environment)
 
-This environment starts with two agents standing at opposite edges of the box, and they are rewarded for x-displacement towards the other edge. There is also small penalty at every time step for not reaching a non-terminal state.
+This environment starts with two agents standing at opposite edges of the box, and they are rewarded for x-displacement towards the other edge. Although this environment is similar to the Escape environment, there are key differences:
 
-The termination condition for the episode is when any agent reaches its goal, therefore there are two physical mechanisms driving the agent to get to its goal as fast as possible:
+1. There is a multi-agent environment where at each time-step each agent takes an action
 
-1. Existing at each timestep penalizes the agent, therefore early termination is desired
+2. All particles now perform elastic collisions with eachother.
 
-2. The competing agent reaching its goal equates to early termination of the agent in reaching its own goal and collecting as much x-displacement reward
-
+This environment naturally exhibits competition because the agents should desire early termination towards their respective goals, which in turn will end their competing agent's reward collection prematurely.
 
 ### Usage
 
