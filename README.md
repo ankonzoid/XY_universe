@@ -9,16 +9,28 @@ We provide here a 2D XY platform of particle environments for training agents to
 ### Survival
 This survival environment has the simple goal of keeping the agent alive by not letting it get touched by any "bad" particles. This survival environment was inspired by [Karpathy's Waterworld environment](http://cs.stanford.edu/people/karpathy/reinforcejs/waterworld.html) where the goal was to dodge the "bad" particles and eat "good" particles. 
 
-##### Reward system: 
-+1 reward every time step
+#### Reward system: 
+* +1 reward every time step
+* +100 for eating a "good" particle
+* -100 for eating a "bad" particle
 
-##### Episode termination condition:
+#### Episode termination condition:
 Upon collision with any "bad" particle
 
-##### Example video:
+#### Example video:
 
-<p align="left">
-<img src="https://github.com/ankonzoid/XY_universe/blob/master/gifs/survival.gif" width="50%">
+<p align="center">
+<img src="https://github.com/ankonzoid/XY_universe/blob/master/gifs/survival.gif" width="45%">
+<img src="https://github.com/ankonzoid/XY_universe/blob/master/gifs/waterworld.gif" width="45%">
+</p>
+
+
+
+### Escape to the right
+
+<p align="center">
+<img src="https://github.com/ankonzoid/XY_universe/blob/master/gifs/prison_escape.gif" width="45%">
+<img src="https://github.com/ankonzoid/XY_universe/blob/master/gifs/pass_by.gif" width="45%">
 </p>
 
 
