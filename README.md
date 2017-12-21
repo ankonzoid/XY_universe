@@ -4,7 +4,7 @@ We provide here a collection of 2D particle environments for training your agent
 
 ## Survival (single-agent environment)
 
-This survival environment consists of a swarm of non-colliding "bad" particles moving abour randomly, and the goal of the agent to stay alive by not touching any of the "bad" particles. This survival environment was inspired by [Karpathy's Waterworld environment](http://cs.stanford.edu/people/karpathy/reinforcejs/waterworld.html) where the goal was to dodge the "bad" particles and eat "good" particles. 
+This survival environment consists of a bunch of non-colliding "bad" particles moving around randomly, and the goal of the agent is to stay alive by not touching any of the "bad" particles. This survival environment was inspired by [Karpathy's Waterworld environment](http://cs.stanford.edu/people/karpathy/reinforcejs/waterworld.html) where the goal is to dodge the "bad" particles and eat "good" particles. 
 
 #### Reward scheme: 
 * +1 for every time step
