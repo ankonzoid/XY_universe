@@ -171,13 +171,14 @@ class Sensors(SensorsBase):
             for type_detect in types_detect:
                 # Distance between agent and particles belonging to sector bin
                 dist_D_sector_type = dist_D[(bin_counts[:,j_sector] == 1) & (type_D == type_detect)]
-                # Observation measurement is the scaled distance of circle edges:
+                # Observation measurement is the scaled distance of circe edges:
                 # 0.0 = when the agent and particle radii are touching edges
                 # 1.0 = furthest distance of agent sensor + particle detection
                 if (len(dist_D_sector_type) == 0):
                     sector_obs_type = 1.0
                 else:
-                    sector_obs_type = (np.amin(dist_D_sector_type) - r_particles - r_agent)/(sector_length - r_agent)
+                    sector_obs_type = (np.amin(dist_D_sector_type) - r_particles - r_agent)/\
+                                      (sector_length - r_agent)
                 sector_obs_types.append(sector_obs_type)
             sector_observation.append(sector_obs_types)
 

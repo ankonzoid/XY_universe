@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 
 def main():
 
-    env_name = "survive_1"
+    env_name = "survive_2"
 
     D = read_extract_csv(os.path.join("output", env_name, "log.csv"))
     red = (195/255, 0/255, 0/255)
