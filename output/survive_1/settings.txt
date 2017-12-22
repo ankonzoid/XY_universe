@@ -1,10 +1,11 @@
 universe.action_name_dict = {0: 'up', 1: 'right', 2: 'down', 3: 'left'}
 universe.action_size = 4
-universe.add_ap_interactions = True
-universe.add_pp_collisions = False
-universe.add_pw_collisions = True
-universe.box_dict = {'y_min': 2, 'y_max': 3, 'x_max': 1, 'x_min': 0}
+universe.add_agent_interactions = True
+universe.add_particle_collisions = False
+universe.add_wall_collisions = True
+universe.box_dict = {'x_max': 1, 'y_max': 3, 'x_min': 0, 'y_min': 2}
 universe.box_half_length = 2.0
+universe.competition_mode = none
 universe.dt = 0.03333333333333333
 universe.dv_agent = 0.01
 universe.mass = 0.05
@@ -15,7 +16,7 @@ universe.pid_agents = [0]
 universe.radius_agent = 0.05
 universe.radius_particles = 0.1
 universe.reward_mode = collect
-universe.state_dict = {'y': 1, 'vy': 3, 'type': 4, 'x': 0, 'vx': 2}
+universe.state_dict = {'y': 1, 'x': 0, 'vy': 3, 'vx': 2, 'type': 4}
 universe.state_init = [[  1.95254016e-01   8.60757465e-01   0.00000000e+00   0.00000000e+00
    -1.00000000e+00]
  [  5.83576452e-01  -2.49651155e-01   3.22703658e-02   3.81919297e-02
@@ -238,14 +239,16 @@ universe.state_init = [[  1.95254016e-01   8.60757465e-01   0.00000000e+00   0.0
     2.00000000e+00]
  [  1.16336065e+00  -1.61102830e+00  -4.72775244e-02   1.62737730e-02
     2.00000000e+00]]
+universe.types_detect = [2]
 universe.v_particles = 0.05
 universe.walls = [(array([-2., -2.]), array([-2.,  2.])), (array([-2.,  2.]), array([ 2.,  2.])), (array([ 2.,  2.]), array([ 2., -2.])), (array([ 2., -2.]), array([-2., -2.]))]
 
 sensors.append_vxy_xy = [True, True, False, False]
 sensors.n_sectors = 4
-sensors.observation_size = 10
-sensors.sector_dim_size = 2
+sensors.observation_size = 6
+sensors.sector_dim_size = 1
 sensors.sector_length = 1.0
+sensors.types_detect = [2]
 
 agent.L2_regularizer = [1e-05, 1e-05]
 agent.action_size = 4
@@ -259,6 +262,8 @@ agent.learning_rate = 0.005
 agent.loss = mse
 agent.memory_size = 10000
 agent.n_epochs = 1
-agent.observation_size = 10
+agent.n_training_sessions = 20
+agent.observation_size = 6
 agent.training_batch_size = 200
+agent.use_target_model = False
 agent.verbose = False

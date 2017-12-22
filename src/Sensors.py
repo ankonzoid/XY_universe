@@ -125,12 +125,6 @@ class Sensors(SensorsBase):
     def _make_sector_observation(self, xy_agent, r_agent, sectors, dtheta_sectors, sector_length,
                xy_particles, type_particles, r_particles, walls):
 
-        # Function for agent sensing the wall
-        def _dist_point_line(x, line):
-            (p1, p2) = (line[0], line[1])
-            d_perp = np.linalg.norm(np.cross(p2-p1, p1-x)) / np.linalg.norm(p2-p1)
-            return d_perp
-
         # Compute distances of all particles from agent
         xy_particles_relative = xy_particles - xy_agent  # particle relative to agent
         dist = np.linalg.norm(xy_particles_relative, axis=1)  # find distances
@@ -172,6 +166,7 @@ class Sensors(SensorsBase):
         types_detect = self.types_detect
         sector_observation = list()
         for j_sector in range(len(sectors)):
+
             sector_obs_types = []
             for type_detect in types_detect:
                 # Distance between agent and particles belonging to sector bin
@@ -186,10 +181,8 @@ class Sensors(SensorsBase):
                 sector_obs_types.append(sector_obs_type)
             sector_observation.append(sector_obs_types)
 
-        # Sense walls
-        """
-        for wall in walls:
-            d = _dist_point_line(x, wall)
-        """
+            # Sense walls
+            for wall in walls:
+                pass
 
         return sector_observation

@@ -30,7 +30,7 @@ from Environment import Environment
 from Config import Config
 
 from agents.DQNAgent import Agent
-from settings.survive_2 import Settings
+from settings.survive_1 import Settings
 
 def main():
     # ====================
@@ -67,7 +67,7 @@ def main():
             if True in dones:  # termination condition
                 break
 
-        # Print and decide to save if we hit reward threshold
+        # Print and check if we hit reward threshold
         print("[ep {:d}/{:d}] iter: {:d}/{:d}".format(episode+1, n_episodes, iter_episode, n_iter), flush=True)
         condition_save = False
         for i in range(n_agents):
@@ -77,7 +77,7 @@ def main():
                 condition_save = True
                 cfg.n_reward_threshold_save[i] += (rewards_episode[i] >= cfg.reward_threshold_save)
 
-        # Save models/animations
+        # Save models + animations
         if condition_save:
             if cfg.save_model:
                 for i in range(n_agents):
@@ -87,7 +87,7 @@ def main():
                 print("    -> saving animation: '{}'".format(cfg.animation_filename(episode)), flush=True)
                 env.make_animation(states_episode, save_animation=True, save_filename=cfg.animation_filename(episode))
 
-        # Train agent models
+        # Train agents
         for i in range(n_agents):
             if len(agents[i].memory) >= agents[i].training_batch_size:
                 losses_episode[i] = agents[i].train()  # automatically adjusts epsilon

@@ -55,7 +55,7 @@ class Agent(AgentBase):
         self.verbose = False  # verbose about training?
 
         # For experience replay memory training
-        self.n_training_sessions = settings.n_training_sessions  # number of training sessions per training episode
+        self.n_training_sessions = settings.n_training_sessions  # training sessions per training episode
         self.training_batch_size = settings.training_batch_size  # training batch size
         self.memory_size = settings.memory_size  # # experiences stored to memory
         self.memory = deque(maxlen=self.memory_size)  # can pop oldest experiences
@@ -165,5 +165,4 @@ class Agent(AgentBase):
 
     # Update target network
     def _update_target_model(self):
-        # Copy current model weights to target model
-        self.model_target.set_weights(self.model.get_weights())
+        self.model_target.set_weights(self.model.get_weights())  # transfer weights to target model
