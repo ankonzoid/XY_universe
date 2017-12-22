@@ -28,14 +28,14 @@ class Settings:
         self.name = "survive_1"  # agent settings
 
         # Run settings
-        self.n_episodes = 5000
+        self.n_episodes = 500
         self.n_iter = 2000
 
         # Config settings
         self.save_settings, self.save_log = True, True
         self.save_model, self.save_animation = True, True
         self.reward_threshold_save = 2000  # log reward threshold passing
-        self.episodes_reward_threshold_save = 100  # num episode of threshold log for animation save
+        self.episodes_reward_threshold_save = 10  # num episode of threshold log for animation save
 
         # Agent settings
         self.epsilon_range, self.epsilon_decay = [0.2, 0.2], 1.0
@@ -44,8 +44,8 @@ class Settings:
         self.L2_regularizer = [1E-5, 1E-5]
         self.learning_rate, self.activation, self.loss, self.n_epochs = 0.005, "relu", "mse", 1
         self.memory_size, self.training_batch_size = 10000, 200
-        self.use_target_model = True
-        self.n_training_sessions = 10
+        self.use_target_model = False
+        self.n_training_sessions = 20
 
         # Universe settings
         self.dt = 1/30
@@ -64,7 +64,7 @@ class Settings:
         # Sensors settings
         self.n_sectors = 4
         self.sector_length = 1.0
-        self.types_detect = [1, 2]  # 1=good, 2=bad, -1/-2=agents
+        self.types_detect = [2]  # 1=good, 2=bad, -1/-2=agents
         self.append_vxy_xy = [True, True, False, False]
 
     def _init_state(self, seed=0):

@@ -96,7 +96,7 @@ def save_plot(x_name, y_names, colors, labels,
         y_name, color, label = y_names[i], colors[i],labels[i]
         (x_plot, y_plot) = (np.array(D[x_name], dtype=np.float), np.array(D[y_name], dtype=np.float))
         y_moving_avg = moving_average(y_plot, n_bins)
-        plt.plot(x_plot, y_plot, marker=".", markersize=1, color=color, linestyle='None', alpha=0.2)
+        plt.plot(x_plot, y_plot, marker=".", markersize=1, color=color, linestyle='None', alpha=0.6)
         plt.plot(x_plot[(n_bins - 1):], y_moving_avg, "-", color=color, label=label)
 
     # Settings

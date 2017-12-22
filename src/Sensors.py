@@ -125,12 +125,6 @@ class Sensors(SensorsBase):
     def _make_sector_observation(self, xy_agent, r_agent, sectors, dtheta_sectors, sector_length,
                xy_particles, type_particles, r_particles, walls):
 
-        # Function for agent sensing the wall
-        def _dist_point_line(x, line):
-            (p1, p2) = (line[0], line[1])
-            d_perp = np.linalg.norm(np.cross(p2-p1, p1-x)) / np.linalg.norm(p2-p1)
-            return d_perp
-
         # Compute distances of all particles from agent
         xy_particles_relative = xy_particles - xy_agent  # particle relative to agent
         dist = np.linalg.norm(xy_particles_relative, axis=1)  # find distances
@@ -172,24 +166,49 @@ class Sensors(SensorsBase):
         types_detect = self.types_detect
         sector_observation = list()
         for j_sector in range(len(sectors)):
+
             sector_obs_types = []
             for type_detect in types_detect:
                 # Distance between agent and particles belonging to sector bin
                 dist_D_sector_type = dist_D[(bin_counts[:,j_sector] == 1) & (type_D == type_detect)]
-                # Observation measurement is the scaled distance of circle edges:
-                # 0.0 = when the agent and particle radii are touching edges
-                # 1.0 = furthest distance of agent sensor + particle detection
                 if (len(dist_D_sector_type) == 0):
                     sector_obs_type = 1.0
                 else:
-                    sector_obs_type = (np.amin(dist_D_sector_type) - r_particles - r_agent)/(sector_length - r_agent)
+                    # Observation measurement is the scaled distance of circe edges:
+                    # 0.0 = when the agent and particle radii are touching edges
+                    # 1.0 = furthest distance of agent sensor + particle detection
+                    sector_obs_type = (np.amin(dist_D_sector_type) - r_particles - r_agent)/\
+                                      (sector_length - r_agent)
                 sector_obs_types.append(sector_obs_type)
             sector_observation.append(sector_obs_types)
 
-        # Sense walls
-        """
-        for wall in walls:
-            d = _dist_point_line(x, wall)
-        """
+            # Sense walls
+            from sympy import Point, Line
+            for wall in walls:
+                line_wall = Line(Point(wall[0][0], wall[0][1]), Point(wall[1][0], wall[1][1]))
+
+                # todo
+                print(bins)
+                print(sectors)
+
+                exit()
+                #theta_1 =
+                #theta_2 =
+
+                xy_agent = np.array([0, 1])
+                sensor_1 = xy_agent.copy()
+                sensor_2 = xy_agent.copy()
+                sensor_1[0] += r_agent * np.cos(theta_1)
+                sensor_1[1] += r_agent * np.sin(theta_1)
+                sensor_2[0] += r_agent * np.cos(theta_2)
+                sensor_2[1] += r_agent * np.sin(theta_2)
+                line_sensor_1 = Line(Point(xy_agent[0], xy_agent[1]), Point(sensor_1[0], sensor_1[1]))
+                line_sensor_2 = Line(Point(xy_agent[0], xy_agent[1]), Point(sensor_2[0], sensor_2[1]))
+
+                int_1 = line_wall.intersection(line_sensor_1)
+                int_2 = line_wall.intersectoin(line_sensor_2)
+                print(int_1, int_2)
+
+            exit()
 
         return sector_observation
