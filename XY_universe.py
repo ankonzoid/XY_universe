@@ -39,7 +39,7 @@ def main():
     settings = Settings()
     universe, sensors = Universe(settings), Sensors(settings)
     env = Environment(universe, sensors)
-    pid_agents, n_agents = env.universe.pid_agents , env.universe.n_agents
+    pid_agents, n_agents = env.universe.pid_agents, env.universe.n_agents
     agents = [Agent(settings, observation_size=env.observation_size, action_size=env.action_size) for i in range(n_agents)]
     cfg = Config(env, root_dir, settings)
     if settings.save_settings:
@@ -54,16 +54,16 @@ def main():
         # Generate episode
         states_episode, iter_episode, rewards_episode, losses_episode = [], 0, [0]*n_agents, [-1]*n_agents
         state = env.reset()
-        observations = [env.make_observation(state, pid_agent) for pid_agent in pid_agents]
+        obs = [env.make_observation(state, pid_agent) for pid_agent in pid_agents]
         for iter in range(n_iter):
-            actions = [agents[i].get_action(observations[i]) for i in range(n_agents)]  # get action
-            observations_next, state_next, rewards, dones = env.step(state, pid_agents, actions)  # evolve
+            actions = [agents[i].get_action(obs[i]) for i in range(n_agents)]  # get action
+            obs_next, state_next, rewards, dones = env.step(state, pid_agents, actions)  # evolve
             for i in range(n_agents):
-                agents[i].store((observations[i], actions[i], rewards[i], observations_next[i], dones[i]))  # append
+                agents[i].store((obs[i], actions[i], rewards[i], obs_next[i], dones[i]))  # append
                 rewards_episode[i] += rewards[i]
             iter_episode += 1
             states_episode.append(state_next)
-            state, observations = state_next, observations_next  # transition
+            state, observations = state_next, obs_next  # transition
             if True in dones:  # termination condition
                 break
 
@@ -95,8 +95,7 @@ def main():
 
         # Save log
         if cfg.save_log:
-            headers = ["episode", "iter"]
-            values = [episode, iter_episode]
+            headers, values = ["episode", "iter"], [episode, iter_episode]
             for i in range(n_agents):
                 headers.extend(["rew_{}".format(i), "loss_{}".format(i), "eps_{}".format(i)])
                 values.extend([rewards_episode[i], losses_episode[i], agents[i].epsilon])
