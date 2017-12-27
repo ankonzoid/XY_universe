@@ -64,7 +64,7 @@ class Settings:
         # Sensors settings
         self.n_sectors = 8
         self.sector_length = 4.0
-        self.types_detect = [1, 2]  # 1=good, 2=bad, -1/-2=agents
+        self.types_detect = [0, 1, 2]  # 1=good, 2=bad, -1/-2=agents, 0=walls
         self.append_vxy_xy = [True, True, True, True]
 
     def _init_state(self, seed=0):

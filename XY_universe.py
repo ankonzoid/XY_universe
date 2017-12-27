@@ -54,16 +54,16 @@ def main():
         # Generate episode
         states_episode, iter_episode, rewards_episode, losses_episode = [], 0, [0]*n_agents, [-1]*n_agents
         state = env.reset()
-        obs = [env.make_observation(state, pid_agent) for pid_agent in pid_agents]
+        observations = [env.make_observation(state, pid_agent) for pid_agent in pid_agents]
         for iter in range(n_iter):
-            actions = [agents[i].get_action(obs[i]) for i in range(n_agents)]  # get action
-            obs_next, state_next, rewards, dones = env.step(state, pid_agents, actions)  # evolve
+            actions = [agents[i].get_action(observations[i]) for i in range(n_agents)]  # get action
+            observations_next, state_next, rewards, dones = env.step(state, pid_agents, actions)  # evolve
             for i in range(n_agents):
-                agents[i].store((obs[i], actions[i], rewards[i], obs_next[i], dones[i]))  # append
+                agents[i].store((observations[i], actions[i], rewards[i], observations_next[i], dones[i]))  # append
                 rewards_episode[i] += rewards[i]
             iter_episode += 1
             states_episode.append(state_next)
-            state, observations = state_next, obs_next  # transition
+            state, observations = state_next, observations_next  # transition
             if True in dones:  # termination condition
                 break
 
