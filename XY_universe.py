@@ -30,7 +30,7 @@ from Environment import Environment
 from Config import Config
 
 from agents.DQNAgent import Agent
-from settings.bump_1 import Settings
+from settings.survive_2 import Settings
 
 def main():
     # ====================
@@ -81,10 +81,10 @@ def main():
         if condition_save:
             if cfg.save_model:
                 for i in range(n_agents):
-                    print("    -> saving agent-{} model: '{}'".format(i, cfg.model_filename(episode, i)), flush=True)
+                    print("    -> saving agent-{} model".format(i), flush=True)
                     agents[i].save_model(cfg.model_filename(episode, i))
             if cfg.save_animation:
-                print("    -> saving animation: '{}'".format(cfg.animation_filename(episode)), flush=True)
+                print("    -> saving animation", flush=True)
                 env.make_animation(states_episode, save_animation=True, save_filename=cfg.animation_filename(episode))
 
         # Train agents

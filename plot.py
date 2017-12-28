@@ -23,34 +23,30 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def main():
-
+    # Settings
     env_name = "survive_2"
+
+    # Plot
+    lines = read_settings_txt(os.path.join("output", env_name, "settings.txt"))
+    n_agents = 1
+    for line in lines:
+        line_split = line.split(" ")
+        if line_split[0] == "universe.n_agents":
+            n_agents = int(line_split[2])
 
     D = read_extract_csv(os.path.join("output", env_name, "log.csv"))
     red = (195/255, 0/255, 0/255)
     blue = (13/255, 28/255, 164/255)
-    if 0:
-        save_plot("episode",
-                  ["rew_0", "rew_1"],
-                  [blue, red],
-                  ["agent-0", "agent-1"],
-                  D, env_name, ["episode", "reward"])
-        save_plot("episode",
-                  ["loss_0", "loss_1"],
-                  [blue, red],
-                  ["agent-0", "agent-1"],
-                  D, env_name, ["episode", "loss"])
-    else:
-        save_plot("episode",
-                  ["rew_0"],
-                  [blue],
-                  ["agent-0"],
-                  D, env_name, ["episode", "reward"])
-        save_plot("episode",
-                  ["loss_0"],
-                  [blue],
-                  ["agent-0"],
-                  D, env_name, ["episode", "loss"])
+
+    reward_str_list = ["rew_{}".format(i) for i in range(n_agents)]
+    loss_str_list = ["loss_{}".format(i) for i in range(n_agents)]
+    color_list = [blue, red]  # plots based on reward_str_list and loss_str_list, so this can be long
+    agent_str_list = ["agent-{}".format(i) for i in range(n_agents)]
+
+    print("Plotting for '{}'...".format(env_name))
+    save_plot("episode", reward_str_list, color_list, agent_str_list, D, env_name, ["episode", "reward"])
+    save_plot("episode", loss_str_list, color_list, agent_str_list, D, env_name, ["episode", "loss"])
+
 
 def read_extract_csv(input_file):
 
@@ -91,7 +87,7 @@ def save_plot(x_name, y_names, colors, labels,
         sys.exit("We have n_bin_ma = {} and not enough data points!".format(n_bins))
 
     # Plot
-    print("Saving {} vs {} for '{}'...".format(y_names, x_name, env_name))
+    print("Saving {} vs {}...".format(y_names, x_name))
     for i in range(len(y_names)):
         y_name, color, label = y_names[i], colors[i],labels[i]
         (x_plot, y_plot) = (np.array(D[x_name], dtype=np.float), np.array(D[y_name], dtype=np.float))
@@ -109,6 +105,13 @@ def save_plot(x_name, y_names, colors, labels,
     output_file = os.path.join("output", env_name, "{}_{}.pdf".format(axis_labels[1], axis_labels[0]))
     plt.savefig(output_file, bbox_inches='tight')
     plt.clf()
+
+def read_settings_txt(text_filename):
+    with open(text_filename) as f:
+        lines = f.readlines()
+    lines = [x.strip() for x in lines]
+    return lines
+
 
 # Driver
 if __name__ == "__main__":

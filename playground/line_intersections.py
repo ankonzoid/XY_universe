@@ -19,15 +19,13 @@ def intersectLines(ptA1, ptA2, ptB1, ptB2):
             valid == 1 if it has a unique intersection ON the segment    """
     DET_TOLERANCE = 0.00000001
     # the first line is ptA1 + r*(ptA2 - ptA1)
-    x1, y1 = ptA1
-    x2, y2 = ptA2
-    dx1 = x2 - x1
-    dy1 = y2 - y1
+    A1_x, A1_y = ptA1
+    A2_x, A2_y = ptA2
+    dx_A, dy_A = A2_x - A1_x, A2_y - A1_y
     # the second line is ptB1 + s*(ptB2 - ptB1)
-    x, y = ptB1
-    xB, yB = ptB2
-    dx, dy = xB - x, yB - y
-
+    B1_x, B1_y = ptB1
+    B2_x, B2_y = ptB2
+    dx_B, dy_B = B2_x - B1_x, B2_y - B1_y
     # we need to find the (typically unique) values of r and s
     # that will satisfy
     #
@@ -45,15 +43,13 @@ def intersectLines(ptA1, ptA2, ptB1, ptB2):
     #
     # where DET = (-dx1 * dy + dy1 * dx)
     #
-    # if DET is too small, they're parallel
-    #
-    DET = (-dx1 * dy + dy1 * dx)  # if DET small = parallel
-    if np.abs(DET) < DET_TOLERANCE: return (0, 0, 0, 0, 0)
+    DET = (-dx_A * dy_B + dy_A * dx_B)  # if DET small = parallel
+    if np.abs(DET) < DET_TOLERANCE: return (0, 0, 0, 0, 0)  # lines are parallel if DET is too small
     DETinv = 1.0 / DET  # now, the determinant should be OK
-    r = DETinv * (-dy * (x - x1) + dx * (y - y1))  # find the scalar amount along the "self" segment
-    s = DETinv * (-dy1 * (x - x1) + dx1 * (y - y1))  # find the scalar amount along the input line
-    xi = (x1 + r * dx1 + x + s * dx) / 2.0  # return the average of the two descriptions
-    yi = (y1 + r * dy1 + y + s * dy) / 2.0  # return the average of the two descriptions
+    r = DETinv * (-dy_B * (B1_x - A1_x) + dx_B * (B1_y - A1_y))  # find the scalar amount along the "self" segment
+    s = DETinv * (-dy_A * (B1_x - A1_x) + dx_A * (B1_y - A1_y))  # find the scalar amount along the input line
+    xi = (A1_x + r * dx_A + B1_x + s * dx_B) / 2.0  # return the average of the two descriptions
+    yi = (A1_y + r * dy_A + B1_y + s * dy_B) / 2.0  # return the average of the two descriptions
     return (xi, yi, 1, r, s)
 
 def testIntersection(pt1, pt2, ptA, ptB):

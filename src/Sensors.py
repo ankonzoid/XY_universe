@@ -190,6 +190,7 @@ class Sensors(SensorsBase):
                     sensor_middle = np.array([xy_agent[0] + sector_length * np.cos(theta_middle),
                                               xy_agent[1] + sector_length * np.sin(theta_middle)])
 
+                    # Find shortest distances
                     distances = []
                     for wall in walls:
                         result_left = self._line_intersection(xy_agent, sensor_left, wall[0], wall[1])
@@ -206,7 +207,7 @@ class Sensors(SensorsBase):
                             distances.append(d)
 
                     if len(distances) > 0:
-                        obs_physical = np.min(distances)
+                        obs_physical = np.amin(distances)
                         if(obs_physical < 0): exit("err: obs_physical < 0!")
                         sector_obs_type = (obs_physical - r_agent) / (sector_length - r_agent)
 
@@ -217,8 +218,8 @@ class Sensors(SensorsBase):
                         # Observation measurement is the scaled distance of circe edges:
                         # 0.0 = when the agent and particle radii are touching edges
                         # 1.0 = furthest distance of agent sensor + particle detection
-                        obs_physical = np.amin(dist_D_sector_type)
-                        sector_obs_type = (obs_physical - r_particles - r_agent) / (sector_length - r_agent)
+                        obs_physical = np.amin(dist_D_sector_type) - r_particles
+                        sector_obs_type = (obs_physical - r_agent) / (sector_length - r_agent)
 
                 sector_obs_types.append(sector_obs_type)
             sector_observation.append(sector_obs_types)
