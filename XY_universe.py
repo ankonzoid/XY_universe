@@ -91,7 +91,7 @@ def main():
         for i in range(n_agents):
             if len(agents[i].memory) >= agents[i].training_batch_size:
                 losses_episode[i] = agents[i].train()  # automatically adjusts epsilon
-                print("  -> training agent-{}... sessions={}, freeze={}, batch: {:d}, epochs: {:d}, loss: {:.6f}".format(i, agents[i].n_training_sessions, agents[i].use_target_model, agents[i].training_batch_size, agents[i].n_epochs, losses_episode[i]), flush=True)
+                print("  -> training agent-{}... sessions={}, freeze={}, batch={:d}, epochs={:d}, loss={:.6f}".format(i, agents[i].n_training_sessions, agents[i].use_target_model, agents[i].training_batch_size, agents[i].n_epochs, losses_episode[i]), flush=True)
 
         # Save log
         if cfg.save_log:
