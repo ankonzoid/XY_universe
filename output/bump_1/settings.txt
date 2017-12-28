@@ -3,7 +3,7 @@ universe.action_size = 4
 universe.add_agent_interactions = True
 universe.add_particle_collisions = False
 universe.add_wall_collisions = True
-universe.box_dict = {'y_max': 3, 'x_max': 1, 'x_min': 0, 'y_min': 2}
+universe.box_dict = {'x_min': 0, 'y_max': 3, 'x_max': 1, 'y_min': 2}
 universe.box_half_length = 2.0
 universe.competition_mode = compete
 universe.dt = 0.03333333333333333
@@ -16,7 +16,7 @@ universe.pid_agents = [0 1]
 universe.radius_agent = 0.1
 universe.radius_particles = 0.1
 universe.reward_mode = go_x
-universe.state_dict = {'vx': 2, 'x': 0, 'type': 4, 'y': 1, 'vy': 3}
+universe.state_dict = {'y': 1, 'vx': 2, 'vy': 3, 'type': 4, 'x': 0}
 universe.state_init = [[-1.8 -0.2  0.   0.  -1. ]
  [ 1.8  0.2  0.   0.  -2. ]]
 universe.types_detect = [0, 1, 2]
@@ -27,7 +27,7 @@ sensors.append_vxy_xy = [True, True, True, True]
 sensors.n_sectors = 8
 sensors.observation_size = 28
 sensors.sector_dim_size = 3
-sensors.sector_length = 4.0
+sensors.sector_length = 1.0
 sensors.types_detect = [0, 1, 2]
 
 agent.L2_regularizer = [1e-05, 1e-05]

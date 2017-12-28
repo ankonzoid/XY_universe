@@ -294,12 +294,12 @@ class Universe(UniverseBase):
         brown, light_brown = _color(198, 74, 12), _color(222, 184, 135)
         dark_red, red = _color(220, 20, 60), _color(255, 153, 153)
         dark_blue, blue = _color(65, 105, 225), _color(153, 204, 255)
-        dark_grey, grey= _color(105, 105, 105), _color(169, 169, 169)
+        dark_grey, grey = _color(89, 89, 89), _color(169, 169, 169)
         almost_black = _color(30, 30, 30)
 
         # Color dictionary
-        type_color_dict = {-2: brown, -1: orange, 1: dark_red, 2: dark_blue}
-        sensor_type_color_dict = {-2: light_brown, -1: light_orange, 1: red, 2: blue}
+        type_color_dict = {-2: brown, -1: orange, 0: dark_grey, 1: dark_red, 2: dark_blue}
+        sensor_type_color_dict = {-2: light_brown, -1: light_orange, 0: dark_grey, 1: red, 2: blue}
         if type_color_dict.keys() != sensor_type_color_dict.keys():
             sys.exit("err: Non-matching keys for our particle and sensed color dictionaries!")
 

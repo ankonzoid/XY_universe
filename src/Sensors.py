@@ -26,7 +26,6 @@
 """
 import sys
 import numpy as np
-from sympy import Point, Line
 
 from SensorsBase import SensorsBase
 
@@ -169,85 +168,79 @@ class Sensors(SensorsBase):
 
         n_sectors = len(sectors)
         sectors_temp = sectors.copy()
-        sectors_temp.append(0.0)
         sectors_temp.insert(0, 0.0)
-
-        wall_pts = []
-        for wall in walls:
-            wall_pts.append(wall[0])
-        wall_pts = np.array(wall_pts)
-        x_wall_min, x_wall_max = np.min(wall_pts[:, 1]), np.max(wall_pts[:, 1])
-        y_wall_min, y_wall_max = np.min(wall_pts[:, 0]), np.max(wall_pts[:, 0])
 
         for j_sector in range(n_sectors):
 
             sector_obs_types = []
             for type_detect in types_detect:
+
                 # Distance between agent and particles belonging to sector bin
-                dist_D_sector_type = dist_D[(bin_counts[:,j_sector] == 1) & (type_D == type_detect)]
-                if type_detect == 0:  # detect walls
+                sector_obs_type = 1.0  # no detection of particles (default)
+                if type_detect == 0:
 
-                    # todo
-                    sector_obs_type = sector_length
-                    if xy_agent[0] + sector_length > x_wall_max:
-                        sector_obs_type = x_wall_max - xy_agent[0]
-                    elif xy_agent[0] - sector_length < x_wall_min:
-                        sector_obs_type = xy_agent[0] - x_wall_min
-                    elif xy_agent[1] + sector_length > y_wall_max:
-                        sector_obs_type = x_wall_max - xy_agent[1]
-                    elif xy_agent[1] - sector_length < y_wall_min:
-                        sector_obs_type = xy_agent[1] - y_wall_min
+                    # Sensor end points
+                    theta_left = sectors_temp[j_sector]
+                    theta_right = sectors_temp[j_sector + 1]
+                    theta_middle = (theta_left + theta_right)/2
+                    sensor_left = np.array([xy_agent[0] + sector_length * np.cos(theta_left),
+                                            xy_agent[1] + sector_length * np.sin(theta_left)])
+                    sensor_right = np.array([xy_agent[0] + sector_length * np.cos(theta_right),
+                                             xy_agent[1] + sector_length * np.sin(theta_right)])
+                    sensor_middle = np.array([xy_agent[0] + sector_length * np.cos(theta_middle),
+                                              xy_agent[1] + sector_length * np.sin(theta_middle)])
 
-                    sector_obs_type = (sector_obs_type - r_agent) / (sector_length - r_agent)
+                    distances = []
+                    for wall in walls:
+                        result_left = self._line_intersection(xy_agent, sensor_left, wall[0], wall[1])
+                        result_right = self._line_intersection(xy_agent, sensor_right, wall[0], wall[1])
+                        result_middle = self._line_intersection(xy_agent, sensor_middle, wall[0], wall[1])
+                        if result_left[2] == 1 and result_left[3] >= 0.0 and result_left[3] <= 1.0:
+                            d = np.linalg.norm(np.array([result_left[0], result_left[1]]) - xy_agent)
+                            distances.append(d)
+                        if result_right[2] == 1 and result_right[3] >= 0.0 and result_right[3] <= 1.0:
+                            d = np.linalg.norm(np.array([result_right[0], result_right[1]]) - xy_agent)
+                            distances.append(d)
+                        if result_middle[2] == 1 and result_middle[3] >= 0.0 and result_middle[3] <= 1.0:
+                            d = np.linalg.norm(np.array([result_middle[0], result_middle[1]]) - xy_agent)
+                            distances.append(d)
 
-                elif len(dist_D_sector_type) == 0:  # no detection of particles
-
-                    sector_obs_type = 1.0
+                    if len(distances) > 0:
+                        obs_physical = np.min(distances)
+                        if(obs_physical < 0): exit("err: obs_physical < 0!")
+                        sector_obs_type = (obs_physical - r_agent) / (sector_length - r_agent)
 
                 else:
 
-                    # Observation measurement is the scaled distance of circe edges:
-                    # 0.0 = when the agent and particle radii are touching edges
-                    # 1.0 = furthest distance of agent sensor + particle detection
-                    sector_obs_type = (np.amin(dist_D_sector_type) - r_particles - r_agent)/(sector_length - r_agent)
+                    dist_D_sector_type = dist_D[(bin_counts[:, j_sector] == 1) & (type_D == type_detect)]
+                    if len(dist_D_sector_type) > 0:
+                        # Observation measurement is the scaled distance of circe edges:
+                        # 0.0 = when the agent and particle radii are touching edges
+                        # 1.0 = furthest distance of agent sensor + particle detection
+                        obs_physical = np.amin(dist_D_sector_type)
+                        sector_obs_type = (obs_physical - r_particles - r_agent) / (sector_length - r_agent)
 
                 sector_obs_types.append(sector_obs_type)
             sector_observation.append(sector_obs_types)
 
-            # Sense walls
-
-        print(sector_observation)
-        exit()
-        """
-        obs_sectors = []
-        for wall in walls:
-            line_wall = Line(Point(wall[0][0], wall[0][1]), Point(wall[1][0], wall[1][1]))
-            theta_1, theta_2 = sectors_temp[j_sector], sectors_temp[j_sector+1]
-            sensor_1, sensor_2 = xy_agent.copy(), xy_agent.copy()
-            sensor_1[0] += sector_length * np.cos(theta_1)
-            sensor_1[1] += sector_length * np.sin(theta_1)
-            sensor_2[0] += sector_length * np.cos(theta_2)
-            sensor_2[1] += sector_length * np.sin(theta_2)
-            line_sensor_1 = Line(Point(xy_agent[0], xy_agent[1]), Point(sensor_1[0], sensor_1[1]))
-            line_sensor_2 = Line(Point(xy_agent[0], xy_agent[1]), Point(sensor_2[0], sensor_2[1]))
-
-            int_1 = line_wall.intersection(line_sensor_1)
-            int_2 = line_wall.intersection(line_sensor_2)
-
-            obs = sector_length
-            if len(int_1) > 0:
-                int_1_pt = np.array([float(int_1[0][0]), float(int_1[0][1])])
-                d = np.linalg.norm(int_1_pt - xy_agent)
-                if d < obs: obs = d
-            if len(int_2) > 0:
-                int_2_pt = np.array([float(int_2[0][0]), float(int_2[0][1])])
-                d = np.linalg.norm(int_2_pt - xy_agent)
-                if d < obs: obs = d
-            # convert obs to our formulation
-            #obs = (obs - r_agent)/(sector_length - r_agent)
-            obs_sectors.append(obs)
-        print(obs_sectors)
-        exit()
-        """
-
         return sector_observation
+
+    def _line_intersection(self, ptA1, ptA2, ptB1, ptB2):
+        DET_TOLERANCE = 0.00000001
+        # the first line is ptA1 + r*(ptA2 - ptA1)
+        A1_x, A1_y = ptA1
+        A2_x, A2_y = ptA2
+        dx_A, dy_A = A2_x - A1_x, A2_y - A1_y
+        # the second line is ptB1 + s*(ptB2 - ptB1)
+        B1_x, B1_y = ptB1
+        B2_x, B2_y = ptB2
+        dx_B, dy_B = B2_x - B1_x, B2_y - B1_y
+        # compute determinant
+        DET = (-dx_A * dy_B + dy_A * dx_B)
+        if np.abs(DET) < DET_TOLERANCE: return (0, 0, 0, 0, 0)  # lines are parallel if DET is too small
+        DETinv = 1.0 / DET  # now, the determinant should be OK
+        r = DETinv * (-dy_B * (B1_x - A1_x) + dx_B * (B1_y - A1_y))  # find the scalar amount along the "self" segment
+        s = DETinv * (-dy_A * (B1_x - A1_x) + dx_A * (B1_y - A1_y))  # find the scalar amount along the input line
+        xi = (A1_x + r * dx_A + B1_x + s * dx_B) / 2.0  # return the average of the two descriptions
+        yi = (A1_y + r * dy_A + B1_y + s * dy_B) / 2.0  # return the average of the two descriptions
+        return (xi, yi, 1, r, s)
