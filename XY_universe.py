@@ -30,7 +30,7 @@ from Environment import Environment
 from Config import Config
 
 from agents.DQNAgent import Agent
-from settings.survive_2 import Settings
+from settings.test import Settings
 
 def main():
     # ====================
