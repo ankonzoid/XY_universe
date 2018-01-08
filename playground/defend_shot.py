@@ -15,8 +15,8 @@ from keras.optimizers import Adam
 if __name__ == "__main__":
     Lx, Ly = 20.0, 10.0
     r_ball = 0.2
-    r_defender = 0.5
-    dy = 0.04
+    r_defender = 0.2
+    dx, dy = 0.04, 0.04
     ind = {"x": 0, "y": 1}
 
     goal_line = np.array([[Lx, 0.1*Ly], [Lx, 0.9*Ly]])
@@ -25,29 +25,31 @@ if __name__ == "__main__":
 
     # Setup agent
     from collections import deque
-    gamma = 0.95
+    gamma = 0.99
     training_batch_size = 200
     memory = deque(maxlen=10000)
+    epsilon = 0.4
 
-    action_size = 2
+    action_size = 3
     observation_size = 2
     model = Sequential()
-    model.add(Dense(10, input_dim=observation_size, activation="relu"))
-    model.add(Dense(10, activation="relu"))
+    model.add(Dense(50, input_dim=observation_size, activation="relu"))
+    model.add(Dense(50, activation="relu"))
     model.add(Dense(action_size, activation="linear"))
     model.compile(loss="mse", optimizer=Adam(lr=0.001))
 
     # Generate episodes
-    n_episodes = 20000
+    n_episodes = 5000
     n_iter = 300
-    t = 0.0
     dt = 0.1
     scored = 0
     v_ball_size = 2.0
     reward_performance = deque(maxlen=100)
+    t_delay = 10.0  # delay the shot
     for episode in range(n_episodes):
 
         # Reset position of ball and defenders
+        t = 0.0
         ball, defender = ball_init.copy(), defender_init.copy()
 
         # Animation storage
@@ -78,12 +80,12 @@ if __name__ == "__main__":
             # ============================
             # Make observation
             # ============================
-            observation = ball - defender
+            ball_relative_location = ball - defender
+            observation = ball_relative_location
 
             # ============================
             # Choose an action
             # ============================
-            epsilon = 0.2
             observation_reshaped = np.reshape(observation, [1, len(observation)])  # reshape for model input
             if np.random.rand() < epsilon:
                 action = np.random.choice(list(range(action_size)))  # explore
@@ -98,6 +100,12 @@ if __name__ == "__main__":
                 defender += np.array([0,dy])  # up
             elif action == 1:
                 defender += np.array([0,-dy])  # down
+            elif action == 2:
+                pass
+            #elif action == 2:
+            #    defender += np.array([dx,0])  # down
+            #elif action == 3:
+            #    defender += np.array([-dx,0])  # down
             else:
                 exit("err: invalid action!")
 
@@ -105,7 +113,10 @@ if __name__ == "__main__":
             # Move ball
             # ============================
             t += dt
-            ball_next = ball + v_ball * dt
+            if t - t_delay > 0:
+                ball_next = ball + v_ball * dt
+            else:
+                ball_next = ball
             d_ball_to_defender = np.linalg.norm(ball_next-defender)  # scalar
 
             # ============================
@@ -202,8 +213,8 @@ if __name__ == "__main__":
         # Make animation
         # =============================
         if episode % 100 == 0:
+            print("Making animation...")
             fig = plt.figure()
-            fig.clf()
             fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
             ax = fig.add_subplot(111, autoscale_on=False, xlim=(-0.1, Lx+0.5), ylim=(-0.1, Ly+0.1))
 
@@ -237,12 +248,6 @@ if __name__ == "__main__":
 
             ani = animation.FuncAnimation(fig, animate, len(defender_animation), init_func=init, interval=20, blit=True)
             plt.axis('scaled')
-            #plt.show()
             animation_filename = "animations/ani{}.mp4".format(episode)
             ani.save(animation_filename, extra_args=['-vcodec', 'libx264'])
-
-        # =============================
-        # Print result
-        # =============================
-        #print("{}: {} (acc={}/{})".format(episode+1, status, scored, episode+1))
-
+            plt.clf()
