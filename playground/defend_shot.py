@@ -169,7 +169,7 @@ if __name__ == "__main__":
                 break
 
         reward_performance.append(reward_episode)
-        reward_avg = np.sum(np.array(reward_performance))/len(reward_performance)
+        reward_avg = sum(reward_performance) / len(reward_performance)
         print("episode {}/{}: reward = {:.3f}, reward_avg = {:.3f}".format(episode+1, n_episodes, reward_episode, reward_avg))
 
         # =============================
