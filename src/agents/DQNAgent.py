@@ -99,7 +99,7 @@ class Agent(AgentBase):
         for session in range(self.n_training_sessions):
 
             # Sample a mini-batch from replay memory
-            minibatch = random.sample(self.memory, self.training_batch_size)
+            minibatch = random.sample(self.memory, min(self.training_batch_size, len(self.memory)))
             (observations, actions, rewards, observations_next, dones) = ([], [], [], [], [])
             for (observation, action, reward, observation_next, done) in minibatch:
                 observations.append(observation)
