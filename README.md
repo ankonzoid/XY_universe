@@ -76,7 +76,7 @@ Run the command
 
 * keras, numpy, scipy, matplotlib
 
-### Relevant sources
+### Relevant resources
 
 * [Karpathy's Waterworld simulation](http://cs.stanford.edu/people/karpathy/reinforcejs/waterworld.html)
 
@@ -85,6 +85,12 @@ Run the command
 * ["Multiagent Cooperation and Competition with Deep Reinforcement Learning" (Tampuu et al)](https://arxiv.org/abs/1511.08779)
 
 * ["Multi-Agent Reinforcement Learning: Independent vs Cooperative Agents" (Tan)](https://pdfs.semanticscholar.org/b3fc/56876ad1cdf35ad4af13b991bbb24d219bd9.pdf)
+
+* ["Demystifying Deep Reinforcement Learning"](https://ai.intel.com/demystifying-deep-reinforcement-learning/)
+
+* ["Let's Make an A3C: Theory"](https://jaromiru.com/2017/02/16/lets-make-an-a3c-theory/)
+
+* ["Let's Make an A3C: Implementation"](https://jaromiru.com/2017/03/26/lets-make-an-a3c-implementation/)
 
 ### Authors:
 
