@@ -1,12 +1,22 @@
-from agent import Agent
-from environment import Environment
+from src.agent import Agent
+from src.environment import Environment
 
 if __name__ == "__main__":
 
+    # todo
+    # todo
+    # todo
+    # todo
+    # todo
+
     env = Environment()
-    agent = Agent(name="defender",
+    agent = Agent(name="attacker",
                   observation_size=env.observation_size,
                   action_size=env.action_size)
+
+    #attacker_agent = Agent(name="attacker")
+
+
     n_experiments = 1000
     n_episodes_per_experiment = 100
     n_iter = 300
@@ -21,8 +31,7 @@ if __name__ == "__main__":
             env.reset()  # reset experiment
             agent.memory = []  # reset agent memory
 
-            reward_episode = 0.0
-            iter = 0
+            iter, reward_episode = 0, 0.0
             while iter < n_iter:
                 observation = env.make_observation()
                 action = agent.get_action(observation)
@@ -42,7 +51,7 @@ if __name__ == "__main__":
 
         # Save model if the experiment has higher reward average
         if reward_avg > reward_avg_best:
-            model_filename = "models/model_exp={}_rewavg={:.3f}.h5".format(experiment, reward_avg)
+            model_filename = "models/{}/model_exp={}_rewavg={:.3f}.h5".format(agent.name, experiment, reward_avg)
             print(" -> saving better reward avg model '{}'".format(model_filename))
             reward_avg_best = reward_avg
             agent.save(model_filename)

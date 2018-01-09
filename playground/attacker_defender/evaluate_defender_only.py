@@ -1,12 +1,14 @@
-from agent import Agent
-from environment import Environment
+from src.agent import Agent
+from src.environment import Environment
 
 if __name__ == "__main__":
 
-    model_filename_load = "models/model_exp=170_rewavg=0.940.h5"
+    name = "defender"
+    save_animations = False
+    model_filename_load = "models/defender/model_exp=170_rewavg=0.940.h5"
 
     env = Environment()
-    agent = Agent(name="defender",
+    agent = Agent(name=name,
                   observation_size=env.observation_size,
                   action_size=env.action_size)
     agent.load(model_filename_load)  # load trained model
@@ -15,7 +17,6 @@ if __name__ == "__main__":
     n_iter = 300
     n_animations_save = 10
 
-    reward_avg_best = -9E9
     for experiment in range(1):
 
         reward_experiment = []
@@ -29,8 +30,7 @@ if __name__ == "__main__":
             ball_animation.append(env.ball.copy())  # store to animation data
             defender_animation.append(env.defender.copy())  # store to animation data
 
-            reward_episode = 0.0
-            iter = 0
+            iter, reward_episode = 0, 0.0
             while iter < n_iter:
                 observation = env.make_observation()
                 action = agent.get_action(observation)
@@ -48,10 +48,10 @@ if __name__ == "__main__":
 
             print("[episode {}/{}] reward={:.3f}".format(episode+1, n_episodes_per_experiment, reward_episode))
 
-            if episode < n_animations_save:
+            if episode < n_animations_save and save_animations:
                 animation_data = (defender_animation, ball_animation)
-                env.make_animation(animation_data, "animations/ani_ep={}_rew={:.3f}.mp4".format(episode, reward_episode))
+                env.make_animation(animation_data, "animations/{}/ani_ep={}_rew={:.3f}.mp4".format(name, episode, reward_episode))
 
         # Print experiment result
         reward_avg = sum(reward_experiment) / len(reward_experiment)
-        print("Evaluation: reward_avg = {:.3f} ({} episodes)".format(reward_avg, len(reward_experiment)))
+        print("-> reward_avg = {:.3f} (over {} episodes)".format(reward_avg, len(reward_experiment)))

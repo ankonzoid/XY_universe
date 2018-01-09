@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from line_intersections import intersectLines
+from src.line_intersections import intersectLines
 
 class Environment:
     def __init__(self):
