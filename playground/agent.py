@@ -7,7 +7,8 @@ from keras.models import load_model
 
 class Agent:
 
-    def __init__(self, observation_size=2, action_size=2):
+    def __init__(self, name="agent", observation_size=2, action_size=2):
+        self.name = name
         self.observation_size = observation_size
         self.action_size = action_size
         self.gamma = 0.99

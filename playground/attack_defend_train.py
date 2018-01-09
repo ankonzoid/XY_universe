@@ -4,7 +4,9 @@ from environment import Environment
 if __name__ == "__main__":
 
     env = Environment()
-    agent = Agent(observation_size=env.observation_size, action_size=env.action_size)
+    agent = Agent(name="defender",
+                  observation_size=env.observation_size,
+                  action_size=env.action_size)
     n_experiments = 1000
     n_episodes_per_experiment = 100
     n_iter = 300

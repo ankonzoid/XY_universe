@@ -6,7 +6,9 @@ if __name__ == "__main__":
     model_filename_load = "models/model_exp=170_rewavg=0.940.h5"
 
     env = Environment()
-    agent = Agent(observation_size=env.observation_size, action_size=env.action_size)
+    agent = Agent(name="defender",
+                  observation_size=env.observation_size,
+                  action_size=env.action_size)
     agent.load(model_filename_load)  # load trained model
 
     n_episodes_per_experiment = 1000
