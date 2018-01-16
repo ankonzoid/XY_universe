@@ -41,8 +41,7 @@ class ActorCritic:
         _, self.target_actor_model = self.create_actor_model()
 
         self.actor_critic_grad = tf.placeholder(tf.float32,
-                                                [None, self.env.action_space.shape[
-                                                    0]])  # where we will feed de/dC (from critic)
+                                                [None, self.env.action_space.shape[0]])  # where we will feed de/dC (from critic)
 
         actor_model_weights = self.actor_model.trainable_weights
         self.actor_grads = tf.gradients(self.actor_model.output,
@@ -75,7 +74,7 @@ class ActorCritic:
         h3 = Dense(24, activation='relu')(h2)
         output = Dense(self.env.action_space.shape[0], activation='relu')(h3)
 
-        model = Model(input=state_input, output=output)
+        model = Model(inputs=state_input, outputs=output)
         adam = Adam(lr=0.001)
         model.compile(loss="mse", optimizer=adam)
         return state_input, model
@@ -91,7 +90,7 @@ class ActorCritic:
         merged = Add()([state_h2, action_h1])
         merged_h1 = Dense(24, activation='relu')(merged)
         output = Dense(1, activation='relu')(merged_h1)
-        model = Model(input=[state_input, action_input], output=output)
+        model = Model(inputs=[state_input, action_input], outputs=output)
 
         adam = Adam(lr=0.001)
         model.compile(loss="mse", optimizer=adam)
@@ -126,6 +125,11 @@ class ActorCritic:
                 future_reward = self.target_critic_model.predict(
                     [new_state, target_action])[0][0]
                 reward += self.gamma * future_reward
+
+            #print(cur_state)
+            #print(action)
+            #print([cur_state, action])
+            #exit()
             self.critic_model.fit([cur_state, action], reward, verbose=0)
 
     def train(self):
@@ -185,7 +189,7 @@ def main():
     cur_state = env.reset()
     action = env.action_space.sample()
     while True:
-        env.render()
+        #env.render()
         cur_state = cur_state.reshape((1, env.observation_space.shape[0]))
         action = actor_critic.act(cur_state)
         action = action.reshape((1, env.action_space.shape[0]))

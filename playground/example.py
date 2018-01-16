@@ -73,7 +73,7 @@ memory = Memory(max_size=memory_size)
 # Make a bunch of random actions and store the experiences
 for ii in range(pretrain_length):
     # Uncomment the line below to watch the simulation
-    # env.render()
+    env.render()
 
     # Make a random action
     action = env.action_space.sample()
@@ -106,7 +106,7 @@ for ep in range(1, train_episodes):
     while t < max_steps:
         step += 1
         # Uncomment this next line to watch the training
-        # env.render()
+        env.render()
 
         # Explore or Exploit
         explore_p = explore_stop + (explore_start - explore_stop)*np.exp(-decay_rate*step)
