@@ -1,6 +1,6 @@
 # XY universe: a 2D particle environment for Deep Reinforcement Learning
 
-We provide here a collection of 2D particle environments for training your agents. Much of the structure is inspired by OpenGym.
+We provide here a collection of 2D particle environments for training your agents. Much of the code structure is inspired by OpenGym of partitioning the agent, evironment, and sensors as much as possible.
 
 ## Survival (single-agent environment)
 
@@ -74,7 +74,8 @@ Run the command
 
 ### Libraries required
 
-* keras, numpy, scipy, matplotlib
+* tensorflow, keras, numpy, scipy, matplotlib, h5py
+* ffmpeg, tkinter
 
 ### Relevant resources
 

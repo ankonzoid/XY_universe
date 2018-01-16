@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 
 def main():
     # Settings
-    env_name = "survive_2"
+    env_name = "test"
 
     # Plot
     lines = read_settings_txt(os.path.join("output", env_name, "settings.txt"))

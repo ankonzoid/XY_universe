@@ -286,6 +286,10 @@ class Universe(UniverseBase):
 
         pid_agents = self.pid_agents
 
+        # Animation bounds
+        x_min, x_max = -box_half_length, box_half_length  # ax.get_xlim()
+        y_min, y_max = -box_half_length, box_half_length  # ax.get_ylim()
+
         # Color definitions
         def _color(r, g, b):
             return (r/255, g/255, b/255)
@@ -304,13 +308,11 @@ class Universe(UniverseBase):
             sys.exit("err: Non-matching keys for our particle and sensed color dictionaries!")
 
         # Axes settings
-        plt.xlim([-box_half_length, box_half_length])
-        plt.ylim([-box_half_length, box_half_length])
+        #plt.xlim([-box_half_length, box_half_length])
+        #plt.ylim([-box_half_length, box_half_length])
         ax.margins(0.1, tight=True)
 
         # Set aspect ratio to be square
-        x_min, x_max = ax.get_xlim()
-        y_min, y_max = ax.get_ylim()
         ax.set_aspect(abs(x_max-x_min)/abs(y_max-y_min))
 
         # Draw circles
@@ -323,11 +325,14 @@ class Universe(UniverseBase):
         # Start
         def animate(i):
             ax.clear()  # clear up objects that were previously added
-            coll_list = []
+            plt.xlim([x_min, x_max])
+            plt.ylim([y_min, y_max])
 
             # =================================
             # Draw particles (all types)
             # =================================
+            coll_list = []
+
             for type in type_color_dict:
                 facecolor = type_color_dict[type]
                 zorder = 3 if type < 0 else 2
