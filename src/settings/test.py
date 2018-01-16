@@ -35,7 +35,7 @@ class Settings:
         self.save_settings, self.save_log = True, True
         self.save_model, self.save_animation = True, True
         self.reward_threshold_save = 2000  # log reward threshold passing
-        self.episodes_reward_threshold_save = 10  # num episode of threshold log for animation save
+        self.episodes_reward_threshold_save = 20  # num episode of threshold log for animation save
 
         # Agent settings
         self.epsilon_range, self.epsilon_decay = [0.2, 0.2], 1.0

@@ -287,8 +287,8 @@ class Universe(UniverseBase):
         pid_agents = self.pid_agents
 
         # Animation bounds
-        x_min, x_max = -box_half_length, box_half_length  # ax.get_xlim()
-        y_min, y_max = -box_half_length, box_half_length  # ax.get_ylim()
+        x_min, x_max = -box_half_length, box_half_length
+        y_min, y_max = -box_half_length, box_half_length
 
         # Color definitions
         def _color(r, g, b):
@@ -308,8 +308,6 @@ class Universe(UniverseBase):
             sys.exit("err: Non-matching keys for our particle and sensed color dictionaries!")
 
         # Axes settings
-        #plt.xlim([-box_half_length, box_half_length])
-        #plt.ylim([-box_half_length, box_half_length])
         ax.margins(0.1, tight=True)
 
         # Set aspect ratio to be square
@@ -325,8 +323,8 @@ class Universe(UniverseBase):
         # Start
         def animate(i):
             ax.clear()  # clear up objects that were previously added
-            plt.xlim([x_min, x_max])
-            plt.ylim([y_min, y_max])
+            ax.set_xlim(x_min, x_max)
+            ax.set_ylim(y_min, y_max)
 
             # =================================
             # Draw particles (all types)

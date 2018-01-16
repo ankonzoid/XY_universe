@@ -3,7 +3,7 @@ universe.action_size = 4
 universe.add_agent_interactions = True
 universe.add_particle_collisions = False
 universe.add_wall_collisions = True
-universe.box_dict = {'y_min': 2, 'x_min': 0, 'y_max': 3, 'x_max': 1}
+universe.box_dict = {'x_max': 1, 'y_min': 2, 'x_min': 0, 'y_max': 3}
 universe.box_half_length = 2.0
 universe.competition_mode = none
 universe.dt = 0.03333333333333333
@@ -16,7 +16,7 @@ universe.pid_agents = [0]
 universe.radius_agent = 0.05
 universe.radius_particles = 0.1
 universe.reward_mode = collect
-universe.state_dict = {'x': 0, 'vy': 3, 'y': 1, 'type': 4, 'vx': 2}
+universe.state_dict = {'x': 0, 'y': 1, 'type': 4, 'vx': 2, 'vy': 3}
 universe.state_init = [[ 1.95254016e-01  8.60757465e-01  0.00000000e+00  0.00000000e+00
   -1.00000000e+00]
  [ 5.83576452e-01 -2.49651155e-01  3.22703658e-02  3.81919297e-02
