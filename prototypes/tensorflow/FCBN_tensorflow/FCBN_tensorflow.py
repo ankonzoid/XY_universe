@@ -62,97 +62,53 @@ def dense_relu_batch(x, phase, scope):
         bn = tf.contrib.layers.batch_norm(h1, center=True, scale=True, is_training=phase, scope='bn')
         return bn
 
-# =====================================
-# Define experiments
-# =====================================
-def experiment_nothing():
-
+# ===============================
+# Define experiment
+# ===============================
+def experiment(mode=""):
     tf.reset_default_graph()
     x = tf.placeholder('float32', (None, 784), name='x')
     y = tf.placeholder('float32', (None, 10), name='y')
     phase = tf.placeholder(tf.bool, name='phase')
 
-    h1 = dense_relu(x, phase,'layer1')
-    h2 = dense_relu(h1, phase, 'layer2')
+    if mode == "relu":
+        h1 = dense_relu(x, 100, 'layer1')
+        h2 = dense_relu(h1, 100, 'layer2')
+    elif mode == "batch_relu":
+        h1 = dense_batch_relu(x, phase, 'layer1')
+        h2 = dense_batch_relu(h1, phase, 'layer2')
+    elif mode == "relu_batch":
+        h1 = dense_relu_batch(x, phase, 'layer1')
+        h2 = dense_relu_batch(h1, phase, 'layer2')
+    else:
+        exit("err: Invalid mode chosen!")
     logits = dense(h2, 10, 'logits')
 
     with tf.name_scope('accuracy'):
         accuracy = tf.reduce_mean(tf.cast(
-                tf.equal(tf.argmax(y, 1), tf.argmax(logits, 1)),
-                'float32'))
+            tf.equal(tf.argmax(y, 1), tf.argmax(logits, 1)),
+            'float32'))
 
     with tf.name_scope('loss'):
         loss = tf.reduce_mean(
             tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=y))
 
     history = train(loss, accuracy)
-
+    history = np.array(history)
     return history
-
-def experiment_batch_norm():
-
-    tf.reset_default_graph()
-    x = tf.placeholder('float32', (None, 784), name='x')
-    y = tf.placeholder('float32', (None, 10), name='y')
-    phase = tf.placeholder(tf.bool, name='phase')
-
-    h1 = dense_batch_relu(x, phase, 'layer1')
-    h2 = dense_batch_relu(h1, phase, 'layer2')
-    logits = dense(h2, 10, 'logits')
-
-    with tf.name_scope('accuracy'):
-        accuracy = tf.reduce_mean(tf.cast(
-            tf.equal(tf.argmax(y, 1), tf.argmax(logits, 1)),
-            'float32'))
-
-    with tf.name_scope('loss'):
-        loss = tf.reduce_mean(
-            tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=y))
-
-    history_bn = train(loss, accuracy)
-
-    return history_bn
-
-def experiment_postactivation_batch_norm():
-
-    tf.reset_default_graph()
-    x = tf.placeholder('float32', (None, 784), name='x')
-    y = tf.placeholder('float32', (None, 10), name='y')
-    phase = tf.placeholder(tf.bool, name='phase')
-
-    h1 = dense_relu_batch(x, phase, 'layer1')
-    h2 = dense_relu_batch(h1, phase, 'layer2')
-    logits = dense(h2, 10, 'logits')
-
-    with tf.name_scope('accuracy'):
-        accuracy = tf.reduce_mean(tf.cast(
-            tf.equal(tf.argmax(y, 1), tf.argmax(logits, 1)),
-            'float32'))
-
-    with tf.name_scope('loss'):
-        loss = tf.reduce_mean(
-            tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=y))
-
-    history_bn_postactivation = train(loss, accuracy)
-
-    return history_bn_postactivation
 
 # ===============================
 # Train
 # ===============================
-history = experiment_nothing()
-history_bn = experiment_batch_norm()
-history_bn_postactivation = experiment_postactivation_batch_norm()
+history_relu = experiment(mode="relu")
+history_batch_relu = experiment(mode="batch_relu")
+history_relu_batch = experiment(mode="relu_batch")
 
 # ===============================
 # Plot
 # ===============================
-history = np.array(history)
-history_bn = np.array(history_bn)
-history_bn_postactivation = np.array(history_bn_postactivation)
-
-plt.plot(history[:, 0], history[:, -1], label='t_acc')
-plt.plot(history_bn[:, 0], history_bn[:, -1], label='t_acc_bn')
-plt.plot(history_bn_postactivation[:, 0], history_bn_postactivation[:, -1], label='t_bn_postactivation')
+plt.plot(history_relu[:, 0], history_relu[:, -1], label='t_acc_relu')
+plt.plot(history_batch_relu[:, 0], history_batch_relu[:, -1], label='t_acc_batchnorm_relu')
+plt.plot(history_relu_batch[:, 0], history_relu_batch[:, -1], label='t_acc_relu_batchnorm')
 plt.legend()
 plt.show()
