@@ -129,8 +129,13 @@ class ActorCritic:
             #print(cur_state)
             #print(action)
             #print([cur_state, action])
+            #print([cur_state[0][0:2].reshape((1,2)), action])
+            this = [cur_state, action]
+            #this = [cur_state[0][0:2].reshape((1,2)), action]
             #exit()
-            self.critic_model.fit([cur_state, action], reward, verbose=0)
+            print(this)
+            print(reward)
+            self.critic_model.fit(this, reward, verbose=0)
 
     def train(self):
         batch_size = 32
