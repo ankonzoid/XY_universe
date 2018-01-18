@@ -13,13 +13,7 @@ import tensorflow as tf
 import numpy as np
 import gym
 from gym import wrappers
-
-import keras
-from keras.models import Sequential, Model
-from keras.layers import Activation, Dense, Dropout, Input
-from keras.layers.merge import Add, Multiply
-from keras.layers.normalization import BatchNormalization
-
+import tflearn
 import argparse
 import pprint as pp
 
@@ -81,7 +75,6 @@ class ActorNetwork(object):
             self.network_params) + len(self.target_network_params)
 
     def create_actor_network(self):
-        """
         inputs = tflearn.input_data(shape=[None, self.s_dim])
         net = tflearn.fully_connected(inputs, 400)
         net = tflearn.layers.normalization.batch_normalization(net)
@@ -95,34 +88,6 @@ class ActorNetwork(object):
             net, self.a_dim, activation='tanh', weights_init=w_init)
         # Scale output to -action_bound to action_bound
         scaled_out = tf.multiply(out, self.action_bound)
-        return inputs, out, scaled_out
-        """
-        inputs = tflearn.input_data(shape=[None, self.s_dim])
-        net = tflearn.fully_connected(inputs, 400)
-        net = tflearn.layers.normalization.batch_normalization(net)
-        net = tflearn.activations.relu(net)
-        net = tflearn.fully_connected(net, 300)
-        net = tflearn.layers.normalization.batch_normalization(net)
-        net = tflearn.activations.relu(net)
-        # Final layer weights are init to Uniform[-3e-3, 3e-3]
-        w_init = tflearn.initializations.uniform(minval=-0.003, maxval=0.003)
-        out = tflearn.fully_connected(net, self.a_dim, activation='tanh', weights_init=w_init)
-        # Scale output to -action_bound to action_bound
-        scaled_out = tf.multiply(out, self.action_bound)
-
-        model = Sequential()
-        model.add(Dense(400, input_dim=self.s_dim))
-        model.add(BatchNormalization())
-        model.add(Activation('relu'))
-
-        model.add(Dense(300))
-        model.add(BatchNormalization())
-        model.add(Activation('relu'))
-
-        model.add(Dense(self.a_dim))
-        
-
-
         return inputs, out, scaled_out
 
     def train(self, inputs, a_gradient):

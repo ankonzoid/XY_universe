@@ -21,22 +21,15 @@ def train(loss, accuracy):
     iterep = 500
     for i in range(iterep * 30):
         x_train, y_train = mnist.train.next_batch(100)
-        sess.run(train_step,
-                 feed_dict={'x:0': x_train,
-                            'y:0': y_train,
-                            'phase:0': 1})
+        sess.run(train_step, feed_dict={'x:0': x_train, 'y:0': y_train, 'phase:0': 1}) # train
         if (i + 1) % iterep == 0:
             epoch = (i + 1) / iterep
-            tr = sess.run([loss, accuracy],
-                          feed_dict={'x:0': mnist.train.images,
-                                     'y:0': mnist.train.labels,
-                                     'phase:0': 1})
-            t = sess.run([loss, accuracy],
-                         feed_dict={'x:0': mnist.test.images,
-                                    'y:0': mnist.test.labels,
-                                    'phase:0': 0})
+            tr = sess.run([loss, accuracy], # evaluate
+                          feed_dict={'x:0': mnist.train.images, 'y:0': mnist.train.labels, 'phase:0': 1})
+            t = sess.run([loss, accuracy], # evaluate
+                         feed_dict={'x:0': mnist.test.images, 'y:0': mnist.test.labels, 'phase:0': 0})
             history += [[epoch] + tr + t]
-            print(history[-1])
+            print("[epoch={}] acc_train={:.3f}, acc_test={:.3f} (L_train={:.5f}, L_test={:.5f}) ".format(epoch, tr[1], t[1], tr[0], t[0]))
     return history
 
 # ===============================
