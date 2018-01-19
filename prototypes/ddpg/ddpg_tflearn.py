@@ -48,12 +48,9 @@ class ActorNetwork(object):
 
         # Target Network
         self.target_inputs, self.target_out, self.target_scaled_out = self.create_actor_network()
+        self.target_network_params = tf.trainable_variables()[len(self.network_params):]
 
-        self.target_network_params = tf.trainable_variables()[
-            len(self.network_params):]
-
-        # Op for periodically updating target network with online network
-        # weights
+        # Op for periodically updating target network with online network weights
         self.update_target_network_params = \
             [self.target_network_params[i].assign(tf.multiply(self.network_params[i], self.tau) +
                                                   tf.multiply(self.target_network_params[i], 1. - self.tau))
@@ -63,16 +60,14 @@ class ActorNetwork(object):
         self.action_gradient = tf.placeholder(tf.float32, [None, self.a_dim])
 
         # Combine the gradients here
-        self.unnormalized_actor_gradients = tf.gradients(
-            self.scaled_out, self.network_params, -self.action_gradient)
+        self.unnormalized_actor_gradients = tf.gradients(self.scaled_out, self.network_params, -self.action_gradient)
         self.actor_gradients = list(map(lambda x: tf.div(x, self.batch_size), self.unnormalized_actor_gradients))
 
         # Optimization Op
         self.optimize = tf.train.AdamOptimizer(self.learning_rate).\
             apply_gradients(zip(self.actor_gradients, self.network_params))
 
-        self.num_trainable_vars = len(
-            self.network_params) + len(self.target_network_params)
+        self.num_trainable_vars = len(self.network_params) + len(self.target_network_params)
 
     def create_actor_network(self):
         inputs = tflearn.input_data(shape=[None, self.s_dim])
@@ -84,8 +79,7 @@ class ActorNetwork(object):
         net = tflearn.activations.relu(net)
         # Final layer weights are init to Uniform[-3e-3, 3e-3]
         w_init = tflearn.initializations.uniform(minval=-0.003, maxval=0.003)
-        out = tflearn.fully_connected(
-            net, self.a_dim, activation='tanh', weights_init=w_init)
+        out = tflearn.fully_connected(net, self.a_dim, activation='tanh', weights_init=w_init)
         # Scale output to -action_bound to action_bound
         scaled_out = tf.multiply(out, self.action_bound)
         return inputs, out, scaled_out
@@ -117,9 +111,7 @@ class CriticNetwork(object):
     """
     Input to the network is the state and action, output is Q(s,a).
     The action must be obtained from the output of the Actor network.
-
     """
-
     def __init__(self, sess, state_dim, action_dim, learning_rate, tau, gamma, num_actor_vars):
         self.sess = sess
         self.s_dim = state_dim
@@ -130,12 +122,10 @@ class CriticNetwork(object):
 
         # Create the critic network
         self.inputs, self.action, self.out = self.create_critic_network()
-
         self.network_params = tf.trainable_variables()[num_actor_vars:]
 
         # Target Network
         self.target_inputs, self.target_action, self.target_out = self.create_critic_network()
-
         self.target_network_params = tf.trainable_variables()[(len(self.network_params) + num_actor_vars):]
 
         # Op for periodically updating target network with online network
@@ -150,8 +140,7 @@ class CriticNetwork(object):
 
         # Define loss and optimization Op
         self.loss = tflearn.mean_square(self.predicted_q_value, self.out)
-        self.optimize = tf.train.AdamOptimizer(
-            self.learning_rate).minimize(self.loss)
+        self.optimize = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss)
 
         # Get the gradient of the net w.r.t. the action.
         # For each action in the minibatch (i.e., for each x in xs),
