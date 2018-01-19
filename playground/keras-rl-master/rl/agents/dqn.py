@@ -398,7 +398,7 @@ class NAFLayer(Layer):
                 ]
                 results, _ = theano.scan(fn=fn, sequences=L_flat, outputs_info=outputs_info)
                 L, LT = results
-            elif K.backend() == 'tensorflow':
+            elif K.backend() == 'tensorflow_examples':
                 import tensorflow as tf
 
                 # Number of elements in a triangular matrix.
@@ -474,7 +474,7 @@ class NAFLayer(Layer):
                     K.zeros((self.nb_actions, self.nb_actions)),
                 ]
                 P, _ = theano.scan(fn=fn, sequences=L_flat, outputs_info=outputs_info)
-            elif K.backend() == 'tensorflow':
+            elif K.backend() == 'tensorflow_examples':
                 import tensorflow as tf
 
                 # Create mask that can be used to gather elements from L_flat and put them

@@ -23,7 +23,7 @@ class DeepDeterministicPolicyGradient(object):
                      summary_writer=None,
                      summary_every=100):
 
-    # tensorflow machinery
+    # tensorflow_examples machinery
     self.session        = session
     self.optimizer      = optimizer
     self.summary_writer = summary_writer

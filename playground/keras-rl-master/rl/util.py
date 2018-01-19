@@ -71,7 +71,7 @@ def huber_loss(y_true, y_pred, clip_value):
     condition = K.abs(x) < clip_value
     squared_loss = .5 * K.square(x)
     linear_loss = clip_value * (K.abs(x) - .5 * clip_value)
-    if K.backend() == 'tensorflow':
+    if K.backend() == 'tensorflow_examples':
         import tensorflow as tf
         if hasattr(tf, 'select'):
             return tf.select(condition, squared_loss, linear_loss)  # condition, true, false

@@ -144,7 +144,7 @@ class DDPGAgent(Agent):
         updates += self.actor.updates  # include other updates of the actor, e.g. for BN
 
         # Finally, combine it all into a callable function.
-        if K.backend() == 'tensorflow':
+        if K.backend() == 'tensorflow_examples':
             self.actor_train_fn = K.function(critic_inputs + [K.learning_phase()],
                                              [self.actor(critic_inputs)], updates=updates)
         else:
