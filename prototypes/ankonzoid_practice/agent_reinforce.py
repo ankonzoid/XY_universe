@@ -75,17 +75,15 @@ class PolicyGradientREINFORCE(object):
       with tf.variable_scope("policy_network"):  # initialize policy network
         self.policy_outputs = self.policy_network(self.states)
       self.action_scores = tf.identity(self.policy_outputs, name="action_scores")  # predict action scores from policy network
-      print(self.action_scores)
       self.predicted_actions = tf.multinomial(self.action_scores, 1)  # sample action from multinomial distrib
-      print(self.predicted_actions)
-      exit()
 
-    # regularization loss
+    # Gather a list of trainable variables (regularization loss)
     policy_network_variables = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="policy_network")
 
-    # compute loss and gradients
+    # Compute loss and gradient
     with tf.name_scope("compute_pg_gradients"):
-      # gradients for selecting action from policy network
+
+      # Placeholder for action and discounted rewards
       self.taken_actions = tf.placeholder(tf.int32, (None,), name="taken_actions")
       self.discounted_rewards = tf.placeholder(tf.float32, (None,), name="discounted_rewards")
 
