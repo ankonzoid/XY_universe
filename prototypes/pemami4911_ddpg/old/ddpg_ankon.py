@@ -29,19 +29,18 @@ def dense_relu_batch(x, phase, scope):
 class Agent:
 
     def __init__(self):
-        agent._build_model()
-        pass
+        self._build_model()
 
     def _build_model(self):
         tf.reset_default_graph()
 
         # Build placeholders for input/output
-        x = tf.placeholder('float32', (None, 784), name='x')
+        X = tf.placeholder('float32', (None, 784), name='x')
         y = tf.placeholder('float32', (None, 10), name='y')
         phase = tf.placeholder(tf.bool, name='phase')
 
         # Build network architecture
-        h1 = dense_batch_relu(x, phase, 'layer1')
+        h1 = dense_batch_relu(X, phase, 'layer1')
         h2 = dense_batch_relu(h1, phase, 'layer2')
         logits = dense(h2, 10, 'logits')
 
@@ -53,47 +52,42 @@ class Agent:
         with tf.name_scope('loss'):
             self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=y))
 
-    def train(self):
+    def train(self, X_train, y_train, X_test, y_test):
 
         accuracy, loss = self.accuracy, self.loss
-
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         with tf.control_dependencies(update_ops):
             # Ensures that we execute the update_ops before performing the train_step
-            train_step = tf.train.GradientDescentOptimizer(0.01).minimize(loss)
+            train_op = tf.train.GradientDescentOptimizer(0.01).minimize(loss)
         sess = tf.Session()
         sess.run(tf.global_variables_initializer())
 
         history = []
-        iterep = 500
-        for i in range(iterep * 30):
-            x_train, y_train = mnist.train.next_batch(100)
-            sess.run(train_step, feed_dict={'x:0': x_train, 'y:0': y_train, 'phase:0': 1})  # train
-            if (i + 1) % iterep == 0:
-                epoch = (i + 1) / iterep
-                tr = sess.run([loss, accuracy],  # evaluate
-                              feed_dict={'x:0': mnist.train.images, 'y:0': mnist.train.labels, 'phase:0': 1})
-                t = sess.run([loss, accuracy],  # evaluate
-                             feed_dict={'x:0': mnist.test.images, 'y:0': mnist.test.labels, 'phase:0': 0})
-                history += [[epoch] + tr + t]
-                print("[epoch={}] acc_train={:.3f}, acc_test={:.3f} (L_train={:.5f}, L_test={:.5f}) ".format(epoch, tr[1], t[1], tr[0], t[0]))
+        n_epochs = 30
+        batch_size = 100
+        n_batches = int(X_train.shape[0] / batch_size)
+        for epoch in range(n_epochs):
+            for i in range(n_batches):
+                X_train_batch = X_train[i*batch_size:(i+1)*batch_size]
+                y_train_batch = y_train[i*batch_size:(i+1)*batch_size]
+                sess.run(train_op, feed_dict={'x:0': X_train_batch, 'y:0': y_train_batch, 'phase:0': 1})  # train
+                if i == n_batches-1:
+                    loss_train, acc_train = sess.run([loss, accuracy],
+                                                     feed_dict={'x:0': X_train, 'y:0': y_train, 'phase:0': 1})  # eval
+                    loss_test, acc_test = sess.run([loss, accuracy],
+                                                   feed_dict={'x:0': X_test, 'y:0': y_test, 'phase:0': 0})  # eval
+                    history += [[epoch] + [loss_train, acc_train] + [loss_test, acc_test]]
+                    print("[epoch={}] acc_train={:.3f}, acc_test={:.3f} (L_train={:.5f}, L_test={:.5f}) ".format(
+                        epoch, acc_train, acc_test, loss_train, loss_test))
+        history = np.array(history)
         return history
 
 
-from tensorflow.examples.tutorials.mnist import input_data
-mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
+if __name__ == "__main__":
+    from tensorflow.examples.tutorials.mnist import input_data
+    mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
+    X_train, y_train = mnist.train.images, mnist.train.labels
+    X_test, y_test = mnist.test.images, mnist.test.labels
 
-X = mnist.train.next_batch(100)
-
-
-exit()
-
-agent = Agent()
-
-
-X_train, y_train = mnist.train.next_batch(100)
-
-
-# Train
-history = agent.train()
-history = np.array(history)
+    agent = Agent()
+    agent.train(X_train, y_train, X_test, y_test)

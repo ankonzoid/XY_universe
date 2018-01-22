@@ -65,7 +65,7 @@ for i_episode in range(MAX_EPISODES):
   total_rewards = 0
 
   for t in range(MAX_STEPS):
-    env.render()
+    #env.render()
     action = pg_reinforce.sampleAction(state[np.newaxis,:])
     next_state, reward, done, _ = env.step(action)
 
