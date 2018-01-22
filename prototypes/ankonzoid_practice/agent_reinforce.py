@@ -66,14 +66,19 @@ class PolicyGradientREINFORCE(object):
   # ===============================================
   def _build_model(self):
 
+    # Input placeholder
     with tf.name_scope("model_inputs"):
-      self.states = tf.placeholder(tf.float32, (None, self.state_dim), name="states")  # raw state repr
+      self.states = tf.placeholder(tf.float32, (None, self.state_dim), name="states")
 
+    # Output
     with tf.name_scope("predict_actions"):  # rollout action based on current policy
       with tf.variable_scope("policy_network"):  # initialize policy network
         self.policy_outputs = self.policy_network(self.states)
-      self.action_scores = tf.identity(self.policy_outputs, name="action_scores")  # predict actions from policy network
+      self.action_scores = tf.identity(self.policy_outputs, name="action_scores")  # predict action scores from policy network
+      print(self.action_scores)
       self.predicted_actions = tf.multinomial(self.action_scores, 1)  # sample action from multinomial distrib
+      print(self.predicted_actions)
+      exit()
 
     # regularization loss
     policy_network_variables = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope="policy_network")
@@ -89,9 +94,9 @@ class PolicyGradientREINFORCE(object):
 
       # compute policy loss and regularization loss
       self.cross_entropy_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.logprobs, labels=self.taken_actions)
-      self.pg_loss            = tf.reduce_mean(self.cross_entropy_loss)
-      self.reg_loss           = tf.reduce_sum([tf.reduce_sum(tf.square(x)) for x in policy_network_variables])
-      self.loss               = self.pg_loss + self.reg_param * self.reg_loss
+      self.pg_loss = tf.reduce_mean(self.cross_entropy_loss)
+      self.reg_loss = tf.reduce_sum([tf.reduce_sum(tf.square(x)) for x in policy_network_variables])
+      self.loss = self.pg_loss + self.reg_param * self.reg_loss
 
       # compute gradients
       self.gradients = self.optimizer.compute_gradients(self.loss)
@@ -128,9 +133,8 @@ class PolicyGradientREINFORCE(object):
     # actions = self.session.run(self.predicted_actions, {self.states: states})[0]
     # return actions[0]
 
-    # temporary workaround
+    """ simple helper function here that takes unnormalized logprobs """
     def softmax(y):
-      """ simple helper function here that takes unnormalized logprobs """
       maxy = np.amax(y)
       e = np.exp(y - maxy)
       return e / np.sum(e)
