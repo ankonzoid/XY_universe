@@ -90,7 +90,15 @@ class PolicyGradientREINFORCE(object):
       with tf.variable_scope("policy_network", reuse=True):
         self.logprobs = self.policy_network(self.states)
 
-      # compute policy loss and regularization loss
+      # Compute total loss as a sum of:
+      #
+      # L = L_pg + alpha_reg * L_reg
+      #   = policy gradient loss + regularization loss
+      #
+      # where:
+      #
+      # L_pg = mean(cross entropy loss)
+      # L_reg = sum(sum(||x||^2: every network variable))
       self.cross_entropy_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.logprobs, labels=self.taken_actions)
       self.pg_loss = tf.reduce_mean(self.cross_entropy_loss)
       self.reg_loss = tf.reduce_sum([tf.reduce_sum(tf.square(x)) for x in policy_network_variables])
