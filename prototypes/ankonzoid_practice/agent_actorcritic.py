@@ -100,6 +100,7 @@ class PolicyGradientActorCritic(object):
         self.policy_outputs = self.actor_network(self.states)
       with tf.variable_scope("critic_network"):
         self.value_outputs = self.critic_network(self.states)
+
       self.action_scores = tf.identity(self.policy_outputs, name="action_scores")  # predict action scores from policy network
       self.predicted_actions = tf.multinomial(self.action_scores, 1)  # sample action from multinomial distrib
 
@@ -185,6 +186,7 @@ class PolicyGradientActorCritic(object):
       # apply gradients to update actor network
       self.train_step = self.optimizer.apply_gradients(self.gradients)
 
+    # Merge summaries
     self.summarize = tf.summary.merge_all()
     self.no_op = tf.no_op()
 

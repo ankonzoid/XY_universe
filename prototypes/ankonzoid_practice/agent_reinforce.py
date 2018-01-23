@@ -86,6 +86,7 @@ class PolicyGradientREINFORCE(object):
     with tf.name_scope("predict_actions"):  # rollout action based on current policy
       with tf.variable_scope("policy_network"):  # initialize policy network
         self.policy_outputs = self.policy_network(self.states)
+
       self.action_scores = tf.identity(self.policy_outputs, name="action_scores")  # predict action scores from policy network
       self.predicted_actions = tf.multinomial(self.action_scores, 1)  # sample action from multinomial distrib
 

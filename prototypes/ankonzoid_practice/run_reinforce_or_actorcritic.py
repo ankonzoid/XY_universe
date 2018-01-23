@@ -10,7 +10,11 @@ import numpy as np
 import gym
 
 # Gym environment
-env_name = "CartPole-v0"
+if 0:
+    env_name = "CartPole-v0"
+else:
+    env_name = "LunarLander-v2"
+
 env = gym.make(env_name)
 state_dim, num_actions = env.observation_space.shape[0], env.action_space.n
 print("state_dim = {}, num_actions = {}".format(state_dim, num_actions))
@@ -42,7 +46,6 @@ for i_episode in range(MAX_EPISODES):
         next_state, reward, done, _ = env.step(action)
 
         total_rewards += reward
-        reward = -10 if done else 0.1 # normalize reward
         agent.store(state, action, reward)
 
         state = next_state

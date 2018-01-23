@@ -6,8 +6,9 @@ import tensorflow as tf
 import numpy as np
 import gym
 
-# env_name = 'InvertedPendulum-v1'
-env_name = 'InvertedDoublePendulum-v1'
+env_name = 'InvertedPendulum-v1'
+#env_name = 'InvertedDoublePendulum-v1'
+#env_name = 'LunarLanderContinuous-v2'
 env = gym.make(env_name)
 
 sess      = tf.Session()
