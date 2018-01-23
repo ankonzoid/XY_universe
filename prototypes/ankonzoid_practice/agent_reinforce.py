@@ -76,13 +76,13 @@ class PolicyGradientREINFORCE(object):
 
     # Set optimizer and policy network
     self.optimizer = tf.train.RMSPropOptimizer(learning_rate=0.0001, decay=0.9)  # set optimizer
-    self.policy_network = self._policy_network
+    self.policy_network = self._policy_network  # goal: (input: states) -> (output: log prob)
 
     # Input placeholder
     with tf.name_scope("model_inputs"):
       self.states = tf.placeholder(tf.float32, (None, self.state_dim), name="states")
 
-    # Output
+    # Output for agent action sampling
     with tf.name_scope("predict_actions"):  # rollout action based on current policy
       with tf.variable_scope("policy_network"):  # initialize policy network
         self.policy_outputs = self.policy_network(self.states)
@@ -106,8 +106,11 @@ class PolicyGradientREINFORCE(object):
       # Compute loss as policy gradient loss + regularization loss:
       #   L = L_pg + alpha_reg * L_reg
       # where:
-      #   L_pg = mean(cross entropy loss)
+      #   L_pg = mean(xentropy-loss)
       #   L_reg = sum(sum(||x||^2: every network variable))
+      # Note:
+      #   xentropy loss increases as predicted prob diverges from label -> perfect model has log loss of 0
+      #   for example, it is bad if you predict 0.012 where the ground truth label is 1
       self.cross_entropy_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.logprobs, labels=self.taken_actions)
       self.pg_loss = tf.reduce_mean(self.cross_entropy_loss)
       self.reg_loss = tf.reduce_sum([tf.reduce_sum(tf.square(x)) for x in policy_network_variables])
@@ -134,7 +137,7 @@ class PolicyGradientREINFORCE(object):
       tf.summary.scalar("reg_loss", self.reg_loss)  # exports L_reg (accessible via TensorBoard)
       tf.summary.scalar("total_loss", self.loss)  # exports L (accessible via TensorBoard)
 
-    # Training update operation
+    # Define training step update operation
     with tf.name_scope("train_policy_network"):
       self.train_step = self.optimizer.apply_gradients(self.gradients)  # update policy networking using policy gradients
 
@@ -142,7 +145,7 @@ class PolicyGradientREINFORCE(object):
     self.summarize = tf.summary.merge_all()  # merge summaries
     self.no_op = tf.no_op()  # does nothing, only useful as placeholder for control edges
 
-    # Initialize all variables in the built model
+    # Initialize all variables in the built model (will initialize when session is run)
     var_lists = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)  # collect variables
     self.session.run(tf.variables_initializer(var_lists))  # initialize variables
     self.session.run(tf.assert_variables_initialized())  # make sure all variables are initialized
@@ -155,24 +158,23 @@ class PolicyGradientREINFORCE(object):
   # get_action
   # ===============================================
   def get_action(self, states):
-    # TODO: use this code piece when tf.multinomial gets better
-    # sample action from current policy
-    # actions = self.session.run(self.predicted_actions, {self.states: states})[0]
-    # return actions[0]
 
-    """ simple helper function here that takes unnormalized logprobs """
+    # Softmax function for normalizing action scores for sampling (log probs)
     def softmax(y):
       maxy = np.amax(y)
       e = np.exp(y - maxy)
       return e / np.sum(e)
 
-    # epsilon-greedy exploration strategy
+    # Epsilon-greedy exploration
     if random.random() < self.exploration:
       return random.randint(0, self.num_actions-1)  # random exploration
     else:
-      action_scores = self.session.run(self.action_scores, {self.states: states})[0]  # compute action scores
-      action_probs  = softmax(action_scores) - 1e-5  # perform softmax normalization on action scores
-      action = np.argmax(np.random.multinomial(1, action_probs))  #
+      action_scores = self.session.run(self.action_scores, {self.states: states})[0]  # compute action scores = log probs
+      action_probs  = softmax(action_scores) - 1e-5  # perform softmax normalization on action scores -> action probs
+      action = np.argmax(np.random.multinomial(1, action_probs))  # perform 1 sample experiment on action probs
+      # actions = self.session.run(self.predicted_actions, {self.states: states})[0]  # sample action from policy
+      # action = actions[0]
+      print(action_scores, action_probs, action)
       return action
 
   # ===============================================
@@ -180,17 +182,17 @@ class PolicyGradientREINFORCE(object):
   # ===============================================
   def train(self):
 
-    N = len(self.reward_buffer)
+    N = len(self.reward_buffer)  # length of reward buffer (length of one episode)
     r = 0 # use discounted reward to approximate Q value
 
-    # compute discounted future rewards
+    # Compute discounted future rewards
     discounted_rewards = np.zeros(N)
     for t in reversed(range(N)):
       # future discounted reward from now on
       r = self.reward_buffer[t] + self.discount_factor * r
       discounted_rewards[t] = r
 
-    # reduce gradient variance by normalization
+    # Normalize discounted rewards to reduce gradient variance
     self.all_rewards += discounted_rewards.tolist()
     self.all_rewards = self.all_rewards[:self.max_reward_length]
     discounted_rewards -= np.mean(self.all_rewards)
@@ -199,7 +201,7 @@ class PolicyGradientREINFORCE(object):
     # whether to calculate summaries
     calculate_summaries = self.summary_writer is not None and self.train_iteration % self.summary_every == 0
 
-    # Update policy network with the rollout in batches
+    # Update policy network using every element in replay memory buffer
     for t in range(N-1):
 
       # Prepare training input
@@ -207,7 +209,7 @@ class PolicyGradientREINFORCE(object):
       actions = np.array([self.action_buffer[t]])
       rewards = np.array([discounted_rewards[t]])
 
-      # Perform 1 training step (compute policy gradient and optimizer uses it to make a step)
+      # Perform one training step (compute policy gradient and optimizer uses it to make a step)
       _, summary_str = self.session.run([self.train_step,
                                          self.summarize if calculate_summaries else self.no_op],
                                         {self.states: states,

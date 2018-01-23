@@ -9,7 +9,12 @@ if 0:
     output = sess.run(c)
     print(output)
 
-if 1:
+if 0:
+    import numpy as np
+    x = np.random.multinomial(4, [0.25, 0.25, 0.25, 0.25])
+    print(x)
+
+if 0:
     with tf.name_scope('y'):
         a1 = tf.Variable(1, name='a')
 
