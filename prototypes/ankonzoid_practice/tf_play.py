@@ -10,6 +10,24 @@ if 0:
     print(output)
 
 if 1:
+    with tf.name_scope('y'):
+        a1 = tf.Variable(1, name='a')
+
+    with tf.name_scope('y'):
+        a2 = tf.Variable(1, name='b')
+
+    with tf.variable_scope('x'):
+        a3 = tf.Variable(1, name='c')
+
+    with tf.variable_scope('x'):
+        a4 = tf.Variable(1, name='d')
+
+    print(a1.name)
+    print(a2.name)
+    print(a3.name)
+    print(a4.name)
+
+if 0:
     n_input = 2
     n_output = 2
     n_hidden_1 = 20
