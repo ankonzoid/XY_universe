@@ -20,8 +20,14 @@ sess = tf.Session()  # start session
 writer = tf.summary.FileWriter("/tmp/{}-experiment-1".format(env_name))
 
 # Agent
-from agent_reinforce import PolicyGradientREINFORCE
-agent = PolicyGradientREINFORCE(sess, state_dim, num_actions, summary_writer=writer)
+if 0:
+    print("Using PG-REINFORCE agent!")
+    from agent_reinforce import PolicyGradientREINFORCE
+    agent = PolicyGradientREINFORCE(sess, state_dim, num_actions, summary_writer=writer)
+else:
+    print("Using PG-Actor-Critic agent!")
+    from agent_actorcritic import PolicyGradientActorCritic
+    agent = PolicyGradientActorCritic(sess, state_dim, num_actions, summary_writer=writer)
 
 # Train
 MAX_EPISODES, MAX_STEPS = 10000, 200
@@ -31,7 +37,7 @@ for i_episode in range(MAX_EPISODES):
     total_rewards = 0
 
     for t in range(MAX_STEPS):
-        env.render()
+        #env.render()
         action = agent.get_action(state[np.newaxis,:])
         next_state, reward, done, _ = env.step(action)
 

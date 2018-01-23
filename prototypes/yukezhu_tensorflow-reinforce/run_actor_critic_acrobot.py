@@ -6,7 +6,7 @@ import tensorflow as tf
 import numpy as np
 import gym
 
-env_name = 'Acrobot-v1'
+env_name = "CartPole-v0"  #'Acrobot-v1'
 env = gym.make(env_name)
 
 sess = tf.Session()
@@ -99,6 +99,7 @@ for i_episode in range(MAX_EPISODES):
   print("Finished after {} timesteps".format(t+1))
   print("Reward for this episode: {}".format(total_rewards))
   print("Average reward for last 100 episodes: {:.2f}".format(mean_rewards))
-  if mean_rewards >= -100.0 and len(episode_history) >= 100:
+  #if mean_rewards >= -100.0 and len(episode_history) >= 100:
+  if mean_rewards >= 195.0 and len(episode_history) >= 100:
     print("Environment {} solved after {} episodes".format(env_name, i_episode+1))
     break

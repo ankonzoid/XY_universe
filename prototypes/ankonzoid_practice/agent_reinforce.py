@@ -111,7 +111,8 @@ class PolicyGradientREINFORCE(object):
       # Note:
       #   xentropy loss increases as predicted prob diverges from label -> perfect model has log loss of 0
       #   for example, it is bad if you predict 0.012 where the ground truth label is 1
-      self.cross_entropy_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.logprobs, labels=self.taken_actions)
+      self.cross_entropy_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.logprobs,
+                                                                               labels=self.taken_actions)
       self.pg_loss = tf.reduce_mean(self.cross_entropy_loss)
       self.reg_loss = tf.reduce_sum([tf.reduce_sum(tf.square(x)) for x in policy_network_variables])
       self.loss = self.pg_loss + self.reg_param * self.reg_loss
@@ -174,7 +175,6 @@ class PolicyGradientREINFORCE(object):
       action = np.argmax(np.random.multinomial(1, action_probs))  # perform 1 sample experiment on action probs
       # actions = self.session.run(self.predicted_actions, {self.states: states})[0]  # sample action from policy
       # action = actions[0]
-      print(action_scores, action_probs, action)
       return action
 
   # ===============================================
