@@ -50,7 +50,7 @@ for i_episode in range(MAX_EPISODES):
         if done: break
     total_rewards_history.append(total_rewards_training)
 
-    print("[episode {}/{}] iter = {}, rew = {:2f}, rew avg = {:2f}...".format(i_episode+1, MAX_EPISODES, total_iter_training, total_rewards_training, np.mean(total_rewards_history)))
+    print("[episode {}/{}] iter = {}, rew = {:.2f}, rew avg = {:.2f}...".format(i_episode+1, MAX_EPISODES, total_iter_training, total_rewards_training, np.mean(total_rewards_history)))
 
     # For every 500 episodes, we evaluate our agent greedily (no training involved)
     #if i_episode % 500 == 0:
