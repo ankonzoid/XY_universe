@@ -7,6 +7,8 @@ class DeepDeterministicPolicyGradient(object):
   def __init__(self, session,
                      state_dim,
                      action_dim,
+                     action_low, # upper bounds on actions
+                     action_high, # lower bounds on actions
                      batch_size=32,
                      replay_buffer_size=1000000,  # size of replay buffer
                      store_replay_every=1,  # how frequent to store experience
@@ -22,6 +24,8 @@ class DeepDeterministicPolicyGradient(object):
     # Environmental parameters
     self.state_dim = state_dim
     self.action_dim = action_dim
+    self.action_high = action_high  # action upper bounds
+    self.action_low = action_low  # action lower bounds
 
     # Tensorflow machinery
     self.session = session
@@ -60,18 +64,20 @@ class DeepDeterministicPolicyGradient(object):
   def _actor_network(self, states):
     h1_dim = 400
     h2_dim = 300
+
     W1 = tf.get_variable("W1", [self.state_dim, h1_dim], initializer=tf.contrib.layers.xavier_initializer())
     b1 = tf.get_variable("b1", [h1_dim], initializer=tf.constant_initializer(0))
     h1 = tf.nn.relu(tf.matmul(states, W1) + b1)
+
     W2 = tf.get_variable("W2", [h1_dim, h2_dim], initializer=tf.contrib.layers.xavier_initializer())
     b2 = tf.get_variable("b2", [h2_dim], initializer=tf.constant_initializer(0))
     h2 = tf.nn.relu(tf.matmul(h1, W2) + b2)
-    # use tanh to bound the action
-    # we assume actions range from [-1, 1]
+
     # you can scale action outputs with any constant here
     W3 = tf.get_variable("W3", [h2_dim, self.action_dim], initializer=tf.contrib.layers.xavier_initializer())
     b3 = tf.get_variable("b3", [self.action_dim], initializer=tf.constant_initializer(0))
-    a = tf.nn.tanh(tf.matmul(h2, W3) + b3)
+    a = tf.nn.tanh(tf.matmul(h2, W3) + b3)  # tanh bound actions to [-1,1]
+
     return a
 
   # ===============================================
@@ -81,10 +87,8 @@ class DeepDeterministicPolicyGradient(object):
     h1_dim = 400
     h2_dim = 300
 
-    # define policy neural network
     W1 = tf.get_variable("W1", [self.state_dim, h1_dim], initializer=tf.contrib.layers.xavier_initializer())
-    b1 = tf.get_variable("b1", [h1_dim],
-                         initializer=tf.constant_initializer(0))
+    b1 = tf.get_variable("b1", [h1_dim], initializer=tf.constant_initializer(0))
     h1 = tf.nn.relu(tf.matmul(states, W1) + b1)
 
     # skip action from the first layer
@@ -92,9 +96,11 @@ class DeepDeterministicPolicyGradient(object):
     W2 = tf.get_variable("W2", [h1_dim + self.action_dim, h2_dim], initializer=tf.contrib.layers.xavier_initializer())
     b2 = tf.get_variable("b2", [h2_dim], initializer=tf.constant_initializer(0))
     h2 = tf.nn.relu(tf.matmul(h1_concat, W2) + b2)
+
     W3 = tf.get_variable("W3", [h2_dim, 1], initializer=tf.contrib.layers.xavier_initializer())
     b3 = tf.get_variable("b3", [1], initializer=tf.constant_initializer(0))
     v = tf.matmul(h2, W3) + b3
+
     return v
 
   # ===============================================
@@ -211,6 +217,7 @@ class DeepDeterministicPolicyGradient(object):
       # group all assignment operations together
       self.target_network_update = tf.group(*self.target_network_update)
 
+
     # Merge summaries
     self.summarize = tf.summary.merge_all()
     self.no_op = tf.no_op()
@@ -228,15 +235,17 @@ class DeepDeterministicPolicyGradient(object):
   # get_action
   # ===============================================
   def get_action(self, states, exploration=True):
-    policy_outs, ou_noise = self.session.run([
-      self.policy_outputs,
-      self.noise
-    ], {
-      self.states: states
-    })
-    # add OU noise for exploration
-    policy_outs = policy_outs + ou_noise if exploration else policy_outs
-    return policy_outs
+    policy_outs, ou_noise = self.session.run([self.policy_outputs, self.noise], {self.states: states})
+    policy_outs = policy_outs + ou_noise if exploration else policy_outs  # add OU noise for exploration
+    action = policy_outs[0]
+    # Although our actor network gives bounded actions [-1,1], the added OU noise can exceed this
+    # Our quick remedy for this is to just clip it
+    for i in range(self.action_dim):
+      if np.isfinite(self.action_high[i]):
+        if action[i] > self.action_high[i]: action[i] = self.action_high[i]  # clip action if above upper bound
+      if np.isfinite(self.action_low[i]):
+        if action[i] < self.action_low[i]: action[i] = self.action_low[i]  # clip action if below lower bound
+    return action
 
   # ===============================================
   # train

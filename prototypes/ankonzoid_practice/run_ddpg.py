@@ -11,11 +11,14 @@ import gym
 
 # Gym environment
 if 1:
-    env_name = "InvertedPendulum-v1"
+    #env_name = "InvertedPendulum-v1"
+    env_name = "LunarLanderContinuous-v2"
 
 env = gym.make(env_name)
 state_dim, action_dim = env.observation_space.shape[0], env.action_space.shape[0]
+action_high, action_low = env.action_space.high, env.action_space.low
 print("state_dim = {}, action_dim = {}".format(state_dim, action_dim))
+print("action_high = {}, action_low = {}".format(action_high, action_low))
 
 # Tensorflow
 sess = tf.Session()  # start session
@@ -25,43 +28,49 @@ writer = tf.summary.FileWriter("/tmp/{}-experiment-1".format(env_name))
 if 1:
     print("Using DDPG agent!")
     from agent_ddpg import DeepDeterministicPolicyGradient
-    agent = DeepDeterministicPolicyGradient(sess, state_dim, action_dim, summary_writer=writer)
+    agent = DeepDeterministicPolicyGradient(sess, state_dim, action_dim,
+                                            action_high, action_low, summary_writer=writer)
 
 # Train
 MAX_EPISODES, MAX_STEPS = 10000, 1000
-episode_history = deque(maxlen=100)
+total_rewards_history = deque(maxlen=100)
 for i_episode in range(MAX_EPISODES):
+
     state = env.reset()
-    for t in range(MAX_STEPS):
+    total_rewards_training = 0
+    total_iter_training = 0
+    for iter in range(MAX_STEPS):
         #env.render()
         action = agent.get_action(state[np.newaxis,:])
         next_state, reward, done, _ = env.step(action)
-        agent.store(state, action, reward, next_state, done)
-        agent.train()  # training is done in the loop
+        agent.store(state, action, reward, next_state, done)  # store into replay buffer
+        agent.train()  # train agent
+        total_iter_training += 1
+        total_rewards_training += reward
         state = next_state
         if done: break
+    total_rewards_history.append(total_rewards_training)
 
+    print("[episode {}/{}] iter = {}, rew = {}, rew avg = {}...".format(i_episode+1, MAX_EPISODES,
+                                                                        total_iter_training, total_rewards_training,
+                                                                        np.mean(total_rewards_history)))
+
+    # For every 500 episodes, we evaluate our agent greedily (no training involved)
     if i_episode % 500 == 0:
-
-        for i_eval in range(100):
+        n_evaluation_episodes = 100
+        print("  -> Evaluating agent model greedily using {} episodes...".format(n_evaluation_episodes))
+        experiment_iter = []
+        experiment_rewards = []
+        for experiment in range(n_evaluation_episodes):
             total_rewards = 0
             state = env.reset()
-            for t in range(MAX_STEPS):
+            for iter in range(MAX_STEPS):
                 # env.render()
-                action = agent.get_action(state[np.newaxis, :], exploration=False)
+                action = agent.get_action(state[np.newaxis, :], exploration=False)  # turn off exploration
                 next_state, reward, done, _ = env.step(action)
-                total_rewards += reward
+                total_rewards += reward  # collect total reward
                 state = next_state
                 if done: break
-
-            episode_history.append(total_rewards)
-            mean_rewards = np.mean(episode_history)
-
-        print("Episode {}".format(i_episode))
-        print("Finished after {} timesteps".format(t + 1))
-        print("Reward for this episode: {:.2f}".format(total_rewards))
-        print("Average reward for last 100 episodes: {:.2f}".format(mean_rewards))
-        # if mean_rewards >= 950.0: # for InvertedPendulum-v1
-        if mean_rewards >= 9100.0:  # for InvertedDoublePendulum-v1
-            print("Environment {} solved after {} episodes".format(env_name, i_episode + 1))
-            break
+            experiment_iter.append(iter)
+            experiment_rewards.append(total_rewards)
+        print("  -> iter_avg = {}, rew_avg = {:.2f}".format(np.mean(experiment_iter), np.mean(experiment_rewards)))

@@ -10,7 +10,7 @@ import numpy as np
 import gym
 
 # Gym environment
-if 0:
+if 1:
     env_name = "CartPole-v0"
 else:
     env_name = "LunarLander-v2"
@@ -34,13 +34,13 @@ else:
     agent = PolicyGradientActorCritic(sess, state_dim, num_actions, summary_writer=writer)
 
 # Train
-MAX_EPISODES, MAX_STEPS = 10000, 200
+MAX_EPISODES, MAX_STEPS = 10000, 500
 reward_history = deque(maxlen=100)
 for i_episode in range(MAX_EPISODES):
+
     state = env.reset()
     total_rewards = 0
-
-    for t in range(MAX_STEPS):
+    for iter in range(MAX_STEPS):
         #env.render()
         action = agent.get_action(state[np.newaxis,:])
         next_state, reward, done, _ = env.step(action)
@@ -56,10 +56,4 @@ for i_episode in range(MAX_EPISODES):
     reward_history.append(total_rewards)
     mean_rewards = np.mean(reward_history)
 
-    print("Episode {}".format(i_episode))
-    print("Finished after {} timesteps".format(t+1))
-    print("Reward for this episode: {}".format(total_rewards))
-    print("Average reward for last 100 episodes: {:.2f}".format(mean_rewards))
-    if mean_rewards >= 195.0 and len(reward_history) >= 100:
-        print("Environment {} solved after {} episodes".format(env_name, i_episode+1))
-        break
+    print("[episode {}/{}] iter = {}, rew = {}, rew_avg= {:.2f}".format(i_episode+1, MAX_EPISODES, iter+1, total_rewards, mean_rewards))
