@@ -11,7 +11,6 @@ import gym
 
 # Gym environment
 if 1:
-    #env_name = "InvertedPendulum-v1"
     env_name = "LunarLanderContinuous-v2"
 
 env = gym.make(env_name)
@@ -29,11 +28,11 @@ if 1:
     print("Using DDPG agent!")
     from agent_ddpg import DeepDeterministicPolicyGradient
     agent = DeepDeterministicPolicyGradient(sess, state_dim, action_dim,
-                                            action_high, action_low, summary_writer=writer)
+                                            action_low, action_high, summary_writer=writer)
 
 # Train
 MAX_EPISODES, MAX_STEPS = 10000, 1000
-total_rewards_history = deque(maxlen=100)
+total_rewards_history = deque(maxlen=50)
 for i_episode in range(MAX_EPISODES):
 
     state = env.reset()
@@ -51,12 +50,11 @@ for i_episode in range(MAX_EPISODES):
         if done: break
     total_rewards_history.append(total_rewards_training)
 
-    print("[episode {}/{}] iter = {}, rew = {}, rew avg = {}...".format(i_episode+1, MAX_EPISODES,
-                                                                        total_iter_training, total_rewards_training,
-                                                                        np.mean(total_rewards_history)))
+    print("[episode {}/{}] iter = {}, rew = {:2f}, rew avg = {:2f}...".format(i_episode+1, MAX_EPISODES, total_iter_training, total_rewards_training, np.mean(total_rewards_history)))
 
     # For every 500 episodes, we evaluate our agent greedily (no training involved)
-    if i_episode % 500 == 0:
+    #if i_episode % 500 == 0:
+    if 0:
         n_evaluation_episodes = 100
         print("  -> Evaluating agent model greedily using {} episodes...".format(n_evaluation_episodes))
         experiment_iter = []
@@ -65,7 +63,7 @@ for i_episode in range(MAX_EPISODES):
             total_rewards = 0
             state = env.reset()
             for iter in range(MAX_STEPS):
-                # env.render()
+                #env.render()
                 action = agent.get_action(state[np.newaxis, :], exploration=False)  # turn off exploration
                 next_state, reward, done, _ = env.step(action)
                 total_rewards += reward  # collect total reward
@@ -73,4 +71,4 @@ for i_episode in range(MAX_EPISODES):
                 if done: break
             experiment_iter.append(iter)
             experiment_rewards.append(total_rewards)
-        print("  -> iter_avg = {}, rew_avg = {:.2f}".format(np.mean(experiment_iter), np.mean(experiment_rewards)))
+        print("  -> iter_avg = {:.2f}, rew_avg = {:.2f}".format(np.mean(experiment_iter), np.mean(experiment_rewards)))

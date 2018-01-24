@@ -47,7 +47,7 @@ class DeepDeterministicPolicyGradient(object):
 
     # Ornstein-Uhlenbeck noise for exploration
     self.noise_var = tf.Variable(tf.zeros([1, action_dim]))
-    noise_random = tf.random_normal([1, action_dim], stddev=noise_sigma)
+    noise_random = tf.random_normal([1, action_dim], stddev=noise_sigma)  # random noise
     self.noise = self.noise_var.assign_sub((noise_theta) * self.noise_var - noise_random)
 
     # counters
@@ -242,9 +242,12 @@ class DeepDeterministicPolicyGradient(object):
     # Our quick remedy for this is to just clip it
     for i in range(self.action_dim):
       if np.isfinite(self.action_high[i]):
-        if action[i] > self.action_high[i]: action[i] = self.action_high[i]  # clip action if above upper bound
+        if action[i] > self.action_high[i]:
+          action[i] = self.action_high[i]  # clip action if above upper bound
       if np.isfinite(self.action_low[i]):
-        if action[i] < self.action_low[i]: action[i] = self.action_low[i]  # clip action if below lower bound
+        if action[i] < self.action_low[i]:
+          action[i] = self.action_low[i]  # clip action if below lower bound
+
     return action
 
   # ===============================================
