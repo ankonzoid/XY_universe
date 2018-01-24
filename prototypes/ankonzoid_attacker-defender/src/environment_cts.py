@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from src.line_intersections import intersectLines
 
-class Environment:
+class Environment_cts:
     def __init__(self):
         self.observation_size = 2
         self.action_size = 2

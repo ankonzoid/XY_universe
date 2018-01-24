@@ -5,7 +5,7 @@ from keras.layers import Dense
 from keras.optimizers import Adam
 from keras.models import load_model
 
-class Agent:
+class Agent_DQN:
 
     def __init__(self, name="agent", observation_size=2, action_size=2):
         self.name = name

@@ -1,12 +1,12 @@
-from src.agent import Agent
-from src.environment import Environment
+from src.agent_dqn import Agent_DQN
+from src.environment_discrete import Environment_discrete
 
 if __name__ == "__main__":
 
-    env = Environment()
-    agent = Agent(name="defender",
-                  observation_size=env.observation_size,
-                  action_size=env.action_size)
+    env = Environment_discrete()
+    agent = Agent_DQN(name="defender",
+                      observation_size=env.observation_size,
+                      action_size=env.action_size)
     n_experiments = 1000
     n_episodes_per_experiment = 100
     n_iter = 300
