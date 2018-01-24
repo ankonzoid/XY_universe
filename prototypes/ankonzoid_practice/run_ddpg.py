@@ -31,7 +31,7 @@ if 1:
                                             action_low, action_high, summary_writer=writer)
 
 # Train
-MAX_EPISODES, MAX_STEPS = 10000, 1000
+MAX_EPISODES, MAX_STEPS = 10000, 5000
 total_rewards_history = deque(maxlen=50)
 for i_episode in range(MAX_EPISODES):
 
