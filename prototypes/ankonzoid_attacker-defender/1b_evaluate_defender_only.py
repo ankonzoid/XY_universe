@@ -1,16 +1,16 @@
-from src.agent import Agent
-from src.environment import Environment
+from src.agent_dqn import Agent_DQN
+from src.environment_discrete import Environment_discrete
 
 if __name__ == "__main__":
 
     name = "defender"
     save_animations = False
-    model_filename_load = "models/defender/model_exp=170_rewavg=0.940.h5"
+    model_filename_load = "models/defender/model_exp=194_rewavg=0.960.h5"
 
-    env = Environment()
-    agent = Agent(name=name,
-                  observation_size=env.observation_size,
-                  action_size=env.action_size)
+    env = Environment_discrete()
+    agent = Agent_DQN(name=name,
+                      observation_size=env.observation_size,
+                      action_size=env.action_size)
     agent.load(model_filename_load)  # load trained model
 
     n_episodes_per_experiment = 1000
