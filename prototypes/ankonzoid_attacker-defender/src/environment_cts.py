@@ -5,8 +5,8 @@ from src.line_intersections import intersectLines
 
 class Environment_cts:
     def __init__(self):
-        self.observation_size = 2
-        self.action_size = 2
+        self.observation_dim = 2
+        self.action_dim = 1
 
     def reset(self):
         self.t = 0.0
@@ -22,13 +22,18 @@ class Environment_cts:
         self.defender = np.array([0.9 * self.Lx, 0.5 * self.Ly])
         self.ball = np.array([0.1 * self.Lx, 0.5 * self.Ly])
 
-        # Set up ball velocity
+        # Set up ball velocity direction (we have speed of ball already)
         goal_line_rel_ball = self.goal_line - self.ball
         theta_goal_line_rel_ball = []
         for i in range(2):
             theta = np.arctan2(goal_line_rel_ball[i, self.ind["y"]], goal_line_rel_ball[i, self.ind["x"]])
             theta_goal_line_rel_ball.append(theta)
-        theta_sample = np.random.uniform(theta_goal_line_rel_ball[0], theta_goal_line_rel_ball[1])
+
+        if 1:  # fix theta
+            #theta_sample = 0.01*np.pi
+            theta_sample = 0.00*np.pi
+        else:  # let theta randomize
+            theta_sample = np.random.uniform(theta_goal_line_rel_ball[0], theta_goal_line_rel_ball[1])
         theta_vec_sample = np.array([np.cos(theta_sample), np.sin(theta_sample)])
         self.v_ball = self.v_ball_mag * theta_vec_sample
 
@@ -43,10 +48,16 @@ class Environment_cts:
         self.t += self.dt
 
         # Move agent
-        # action = [v, theta]
-        v_action = action[0]
-        theta_action = action[1]
-        self.defender += v_action * self.dt * np.array([np.cos(theta_action), np.sin(theta_action)])
+        def _map(x, a, b):
+            # Maps values [-1,1] -> [a,b]
+            alpha, beta = (b-a)/2, (b+a)/2
+            f = alpha*x + beta
+            return f
+        #v_action = _map(action[0], 0.0, 1.0)
+        #theta_action = _map(action[1], 0.0, 2*np.pi)
+        #self.defender += v_action * self.dt * np.array([np.cos(theta_action), np.sin(theta_action)])
+        v_action = _map(action[0], -1.0, 1.0)
+        self.defender += v_action * self.dt * np.array([0, 1])
 
         # Move environment
         ball = self.ball
@@ -87,7 +98,7 @@ class Environment_cts:
 
         defender_animation, ball_animation = animation_data
 
-        print("Making animation...")
+        print(" -> making animation...")
         fig = plt.figure()
         fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
         ax = fig.add_subplot(111, autoscale_on=False, xlim=(-0.1, self.Lx + 0.5), ylim=(-0.1, self.Ly + 0.1))
@@ -129,3 +140,4 @@ class Environment_cts:
         plt.axis('scaled')
         ani.save(animation_filename, extra_args=['-vcodec', 'libx264'])
         plt.clf()
+        plt.close()

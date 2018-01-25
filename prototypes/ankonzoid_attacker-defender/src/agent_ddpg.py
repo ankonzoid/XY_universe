@@ -10,8 +10,8 @@ class Agent_DDPG(object):
                      action_dim,
                      action_low, # upper bounds on actions
                      action_high, # lower bounds on actions
-                     batch_size=32,
-                     replay_buffer_size=1000000,  # size of replay buffer
+                     batch_size=200,
+                     replay_buffer_size=10000,  # size of replay buffer
                      store_replay_every=1,  # how frequent to store experience
                      discount_factor=0.99,  # discount future rewards
                      target_update_rate=0.01,
@@ -21,6 +21,8 @@ class Agent_DDPG(object):
                      noise_theta=0.15,
                      summary_writer=None,
                      summary_every=100):
+
+    self.name = "defender_ddpg"
 
     # Environmental parameters
     self.state_dim = state_dim
@@ -63,8 +65,8 @@ class Agent_DDPG(object):
   # Actor network -> computes policy(s)
   # ===============================================
   def _actor_network(self, states):
-    h1_dim = 400
-    h2_dim = 300
+    h1_dim = 20
+    h2_dim = 20
 
     W1 = tf.get_variable("W1", [self.state_dim, h1_dim], initializer=tf.contrib.layers.xavier_initializer())
     b1 = tf.get_variable("b1", [h1_dim], initializer=tf.constant_initializer(0))
@@ -85,8 +87,8 @@ class Agent_DDPG(object):
   # Critic network -> computes Q(s,a)
   # ===============================================
   def _critic_network(self, states, action):
-    h1_dim = 400
-    h2_dim = 300
+    h1_dim = 20
+    h2_dim = 20
 
     W1 = tf.get_variable("W1", [self.state_dim, h1_dim], initializer=tf.contrib.layers.xavier_initializer())
     b1 = tf.get_variable("b1", [h1_dim], initializer=tf.constant_initializer(0))
@@ -254,7 +256,9 @@ class Agent_DDPG(object):
   # ===============================================
   # train
   # ===============================================
-  def train(self):
+  def train(self, batch_size):
+
+    self.batch_size = batch_size
 
     # not enough experiences yet
     if self.replay_buffer.count() < self.batch_size:
@@ -279,28 +283,16 @@ class Agent_DDPG(object):
     calculate_summaries = self.summary_writer is not None and self.train_iteration % self.summary_every == 0
 
     # compute a = u(s)
-    policy_outs = self.session.run(self.policy_outputs, {
-      self.states: states
-    })
+    policy_outs = self.session.run(self.policy_outputs, {self.states: states})
 
     # compute d_a Q(s,a) where s=s_i, a=u(s)
-    action_grads = self.session.run(self.action_gradients, {
-      self.states: states,
-      self.action: policy_outs
-    })
+    action_grads = self.session.run(self.action_gradients, {self.states: states, self.action: policy_outs})
 
-    critic_loss, _, summary_str = self.session.run([
-      self.critic_loss,
-      self.train_op,
-      self.summarize if calculate_summaries else self.no_op
-    ], {
-      self.states: states,
-      self.next_states: next_states,
-      self.next_state_mask: next_state_mask,
-      self.action: actions,
-      self.rewards: rewards,
-      self.q_action_grad: action_grads
-    })
+    critic_loss, _, summary_str = self.session.run([self.critic_loss, self.train_op,
+                                                    self.summarize if calculate_summaries else self.no_op],
+                                                   {self.states: states, self.next_states: next_states,
+                                                    self.next_state_mask: next_state_mask, self.action: actions,
+                                                    self.rewards: rewards, self.q_action_grad: action_grads})
 
     # update target network using Q-network
     self.session.run(self.target_network_update)
@@ -319,6 +311,13 @@ class Agent_DDPG(object):
       self.replay_buffer.add(state, action, reward, next_state, done)
     self.store_experience_cnt += 1
 
+  # ===============================================
+  # save
+  # ===============================================
+  def save(self, sess, model_filename):
+    saver = tf.train.Saver()
+    save_path = saver.save(sess, model_filename)
+    print(" -> model saved to {}".format(save_path))
 
 # ============================
 # Side classes
