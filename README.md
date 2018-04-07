@@ -4,7 +4,7 @@ We provide here a collection of 2D particle environments for training your agent
 
 ## Survival (single-agent environment)
 
-This survival environment consists of a bunch of non-colliding "bad" particles moving around randomly, and the goal of the agent is to stay alive by not touching any of the "bad" particles. This survival environment was inspired by [Karpathy's Waterworld environment](http://cs.stanford.edu/people/karpathy/reinforcejs/waterworld.html) where the goal is to dodge the "bad" particles and eat "good" particles. 
+This survival environment consists of a bunch of non-colliding "bad" particles moving around randomly, and the goal of the agent is to stay alive by not touching any of the "bad" particles. This survival environment was inspired by [Karpathy's Waterworld environment](http://cs.stanford.edu/people/karpathy/reinforcejs/waterworld.html) where the goal is to dodge the "bad" particles and eat "good" particles. Our two settings is "survive_1" which contains 110 bad particles, and "survive_2" which contains 55 good particles nad 55 bad particles.
 
 #### Reward scheme: 
 * +1 for every time step
@@ -76,6 +76,10 @@ Run the command
 
 * tensorflow, keras, numpy, scipy, matplotlib, h5py
 * ffmpeg, tkinter
+
+### Notes:
+
+MacOS might need you to create: ~/.matplotlib/matplotlibrc and add the line "backend: tkAgg"
 
 ### Relevant resources
 

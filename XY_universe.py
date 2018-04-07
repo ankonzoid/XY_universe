@@ -29,8 +29,8 @@ from Sensors import Sensors
 from Environment import Environment
 from Config import Config
 
-from agents.DQNAgent import Agent
-from settings.test import Settings
+from agents.DQNAgent import Agent  # DQNAgent, DRQNAgent
+from settings.test import Settings  # test, survive_1, survive_2, passby_1, bump_1
 
 def main():
     # ====================
