@@ -1,6 +1,6 @@
 """
 
- DRQNAgent.py  (author: Anson Wong / git: ankonzoid)
+ DQN.py  (author: Anson Wong / git: ankonzoid)
 
  Functions:
    get_action, train, store, save_model, load_model
@@ -24,14 +24,12 @@
 import numpy as np
 import random
 from collections import deque
-from keras.models import Sequential
-from keras.layers import Dense, LSTM
+from keras.models import Sequential, load_model
+from keras.layers import Dense
 from keras.optimizers import Adam
 from keras import regularizers
 
-from AgentBase import AgentBase
-
-class Agent(AgentBase):
+class DQN():
 
     def __init__(self, settings, observation_size=None, action_size=None):
 
@@ -69,33 +67,12 @@ class Agent(AgentBase):
 
     def _build_model(self):
 
-        LSTM_layer_first = False  # first or last?
         model = Sequential()
-        if LSTM_layer_first:
-            # LSTM is the first layer
-            for i, n_hidden_nodes in enumerate(self.hidden_layers):
-                if i==0:
-                    model.add(LSTM(self.hidden_layers[i], activation=self.activation,
-                                   input_shape=(self.observation_size, 1),
-                                   kernel_regularizer=regularizers.l2(self.L2_regularizer[i])))
-                else:
-                    model.add(Dense(self.hidden_layers[i], activation=self.activation,
-                                    kernel_regularizer=regularizers.l2(self.L2_regularizer[i])))
-
-        else:
-            # LSTM is the last layer
-            for i, n_hidden_nodes in enumerate(self.hidden_layers):
-                if i == 0:
-                    model.add(Dense(self.hidden_layers[i], activation=self.activation,
-                                    input_shape=(self.observation_size, 1),
-                                    kernel_regularizer=regularizers.l2(self.L2_regularizer[i])))
-                elif i == len(self.hidden_layers)-1:
-                    model.add(LSTM(self.hidden_layers[i], activation=self.activation,
-                                   kernel_regularizer=regularizers.l2(self.L2_regularizer[i])))
-                else:
-                    model.add(Dense(self.hidden_layers[i], activation=self.activation,
-                                    kernel_regularizer=regularizers.l2(self.L2_regularizer[i])))
-
+        for i, n_hidden_nodes in enumerate(self.hidden_layers):
+            if i==0:
+                model.add(Dense(self.hidden_layers[i], input_dim=self.observation_size, activation=self.activation,  kernel_regularizer=regularizers.l2(self.L2_regularizer[i])))
+            else:
+                model.add(Dense(self.hidden_layers[i], activation=self.activation,  kernel_regularizer=regularizers.l2(self.L2_regularizer[i])))
         model.add(Dense(self.action_size, activation="linear"))
         model.compile(loss=self.loss, optimizer=Adam(lr=self.learning_rate))
 
@@ -104,7 +81,7 @@ class Agent(AgentBase):
     # Get an action from our epsilon-greedy policy
     def get_action(self, observation):
 
-        observation_reshaped = np.reshape(observation, [1, len(observation), 1])  # reshape for model input
+        observation_reshaped = np.reshape(observation, [1, len(observation)])  # reshape for model input
         self.epsilon = max(self.epsilon_range)
         if np.random.rand() <= self.epsilon:
             action = np.random.choice(list(range(self.action_size)))  # explore
@@ -119,15 +96,14 @@ class Agent(AgentBase):
         loss_avg = 0.0
         for session in range(self.n_training_sessions):
 
-            minibatch = random.sample(self.memory, self.training_batch_size)  # sample mini-batch from replay memory
-            observations, actions, rewards, observations_next, dones = [], [], [], [], []
+            # Sample a mini-batch from replay memory
+            minibatch = random.sample(self.memory, min(self.training_batch_size, len(self.memory)))
+            (observations, actions, rewards, observations_next, dones) = ([], [], [], [], [])
             for (observation, action, reward, observation_next, done) in minibatch:
-                #observations.append(observation)
-                observations.append(np.reshape(observation, [len(observation), 1]))  # reshape for model input
+                observations.append(observation)
                 actions.append(action)
                 rewards.append(reward)
-                #observations_next.append(observation_next)
-                observations_next.append(np.reshape(observation_next, [len(observation_next), 1]))  # reshape for model input
+                observations_next.append(observation_next)
                 dones.append(done)
 
             observations = np.array(observations, dtype=np.float)  # (batch_size, observation_size)
@@ -177,7 +153,6 @@ class Agent(AgentBase):
 
     # Load Q-model into agent
     def load_model(self, filename):
-        from keras.models import load_model
         self.model = load_model(filename)
         self.model.compile(loss=self.loss, optimizer=Adam(lr=self.learning_rate))
 
