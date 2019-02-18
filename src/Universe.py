@@ -32,9 +32,7 @@ import matplotlib.animation as animation
 import matplotlib.collections as mc
 from matplotlib.patches import Wedge
 
-from UniverseBase import UniverseBase
-
-class Universe(UniverseBase):
+class Universe():
 
     def __init__(self, settings):
 

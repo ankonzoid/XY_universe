@@ -27,9 +27,7 @@
 import sys
 import numpy as np
 
-from SensorsBase import SensorsBase
-
-class Sensors(SensorsBase):
+class Sensors():
 
     def __init__(self, settings):
 

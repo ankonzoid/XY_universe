@@ -21,9 +21,7 @@
  limitations under the License.
 
 """
-from EnvironmentBase import EnvironmentBase
-
-class Environment(EnvironmentBase):
+class Environment():
 
     def __init__(self, universe, sensors):
         self.universe = universe

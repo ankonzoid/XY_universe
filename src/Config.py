@@ -23,9 +23,7 @@
 """
 import os, csv, datetime
 
-from ConfigBase import ConfigBase
-
-class Config(ConfigBase):
+class Config():
 
     def __init__(self, env, root_dir, settings):
 
