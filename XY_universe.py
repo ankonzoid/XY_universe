@@ -5,7 +5,7 @@
  Trains an agent play in the XY universe environment.
 
 
- Copyright 2018 Anson Wong
+ Copyright 2019 Anson Wong
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ from Sensors import Sensors
 from Environment import Environment
 from Config import Config
 
-from agents.DQNAgent import Agent  # DQNAgent, DRQNAgent
+from agents.DQN.DQN import Agent  # DQNAgent, DRQNAgent
 from settings.test import Settings  # test, survive_1, survive_2, passby_1, bump_1
 
 def main():

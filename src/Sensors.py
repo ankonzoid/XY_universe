@@ -9,7 +9,7 @@
    _make_sectors, _bins_included, _make_sector_observation
 
 
- Copyright 2018 Anson Wong
+ Copyright 2019 Anson Wong
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.

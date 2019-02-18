@@ -1,12 +1,12 @@
 """
 
- DRQNAgent.py  (author: Anson Wong / git: ankonzoid)
+ DRQN.py  (author: Anson Wong / git: ankonzoid)
 
  Functions:
    get_action, train, store, save_model, load_model
 
 
- Copyright 2018 Anson Wong
+ Copyright 2019 Anson Wong
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -24,14 +24,12 @@
 import numpy as np
 import random
 from collections import deque
-from keras.models import Sequential
+from keras.models import Sequential, load_model
 from keras.layers import Dense, LSTM
 from keras.optimizers import Adam
 from keras import regularizers
 
-from AgentBase import AgentBase
-
-class Agent(AgentBase):
+class DRQN():
 
     def __init__(self, settings, observation_size=None, action_size=None):
 
@@ -177,7 +175,6 @@ class Agent(AgentBase):
 
     # Load Q-model into agent
     def load_model(self, filename):
-        from keras.models import load_model
         self.model = load_model(filename)
         self.model.compile(loss=self.loss, optimizer=Adam(lr=self.learning_rate))
 
