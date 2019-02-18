@@ -23,9 +23,9 @@ import numpy as np
 
 class Settings:
 
-    def __init__(self):
+    def __init__(self, n_good=0, n_bad=110):
         # Name
-        self.name = "survive_1"  # agent settings
+        self.name = "survive_bad_good"  # agent settings
 
         # Run settings
         self.n_episodes = 500
@@ -59,47 +59,36 @@ class Settings:
         self.add_wall_collisions = True
         self.add_particle_collisions = False
         self.add_agent_interactions = True
-        self.state_init, self.pid_agents = self._init_state()
+        self.state_init, self.pid_agents = self._init_state(n_good, n_bad)
 
         # Sensors settings
         self.n_sectors = 4
         self.sector_length = 1.0
-        self.types_detect = [0, 2]  # 1=good, 2=bad, -1/-2=agents, 0=walls
+        self.types_detect = [0, 1, 2]  # 1=good, 2=bad, -1/-2=agents, 0=walls
         self.append_vxy_xy = [True, True, False, False]
 
-    def _init_state(self, seed=0):
+    def _init_state(self, n_good, n_bad, seed=0):
         np.random.seed(seed)
         pind = {"x": 0, "y": 1, "vx": 2, "vy": 3, "type": 4}
         (pind_xy, pind_vxy) = ([pind["x"], pind["y"]], [pind["vx"], pind["vy"]])
         (pind_vx, pind_vy, pind_type) = (pind["vx"], pind["vy"], pind["type"])
 
         # Define initial state
-        if 0:
-            idx = 0
-            n_type_agents = (1, 1)  # type -1, type -2
-            n_type_particles = (1, 1)  # type 1 (good), type 2 (bad)
-            n, d = sum(list(n_type_agents)) + sum(list(n_type_particles)), len(pind)  # everything
-            # Custom state
-            BHL = self.box_half_length
-            state = np.zeros((n, d), dtype=np.float)  # format: (type -1, type -2, ..., type 1, type 2)
-            state[idx,:] = np.array([-0.9*BHL, 0.0*BHL, 0.0, 0.0, -1]); idx+=1  # agent 1
-            state[idx,:] = np.array([0.9*BHL, 0.0*BHL, 0.0, 0.0, -2]); idx+=1  # agent 2
-            state[idx,:] = np.array([0.0*BHL, 0.9*BHL, 0.5, -0.5, 1]); idx+=1  # good particle
-            state[idx,:] = np.array([0.0*BHL, -0.9*BHL, -0.5, 0.5, 2]); idx+=1  # bad particle
-        else:
-            idx = 0
-            n_type_agents = (1, 0)  # type -1, type -2
-            n_type_particles = (0, 110)  # type 1 (good), type 2 (bad)
-            n, d = sum(list(n_type_agents)) + sum(list(n_type_particles)), len(pind)  # everything
-            # Random state
-            state = -0.5 + np.random.random((n, d))  # random numbers from standard normal distribution
-            state[:,pind_xy] *= 4.0  # spread out particle positions
-            for i, n_type in enumerate(n_type_agents):
-                state[idx:(idx+n_type),pind_type] = -(i+1)
-                idx += n_type
-            for i, n_type in enumerate(n_type_particles):
-                state[idx:(idx+n_type),pind_type] = (i+1)
-                idx += n_type
+        idx = 0
+        n_type_agents = (1, 0)  # type -1, type -2
+        n_type_particles = (n_good, n_bad)  # type 1 (good), type 2 (bad)
+        #n_type_particles = (0, 110)  # type 1 (good), type 2 (bad)
+        #n_type_particles = (55, 55)  # type 1 (good), type 2 (bad)
+        n, d = sum(list(n_type_agents)) + sum(list(n_type_particles)), len(pind)  # everything
+        # Random state
+        state = -0.5 + np.random.random((n, d))  # random numbers from standard normal distribution
+        state[:,pind_xy] *= 4.0  # spread out particle positions
+        for i, n_type in enumerate(n_type_agents):
+            state[idx:(idx+n_type),pind_type] = -(i+1)
+            idx += n_type
+        for i, n_type in enumerate(n_type_particles):
+            state[idx:(idx+n_type),pind_type] = (i+1)
+            idx += n_type
 
         # Make check
         if idx != n:

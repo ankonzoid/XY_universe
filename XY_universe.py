@@ -2,7 +2,7 @@
 
  XY_universe.py  (author: Anson Wong / git: ankonzoid)
 
- Trains an agent play in the XY universe environment.
+ Trains a DQN agent to survive in the XY particle universe environment.
 
 
  Copyright 2019 Anson Wong
@@ -21,19 +21,19 @@
 
 """
 import os
-from src.Universe import Universe
-from src.Sensors import Sensors
-from src.Environment import Environment
+from src.Universe import Universe # the full simulation
+from src.Sensors import Sensors # sensors for universe
+from src.Environment import Environment # agent environment based on sensors
 from src.Config import Config
 from src.Agents import DQNAgent
-from src.settings.survive_bad import Settings
+from src.Settings import Settings
 
 def main():
     # ====================
     # Settings
     # ====================
     root_dir = os.path.join(os.path.dirname(__file__))
-    settings = Settings()
+    settings = Settings(n_good=0, n_bad=110)
     universe, sensors = Universe(settings), Sensors(settings)
     env = Environment(universe, sensors)
     pid_agents, n_agents = env.universe.pid_agents, env.universe.n_agents

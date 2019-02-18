@@ -1,10 +1,10 @@
 # XY universe: a 2D particle environment for Deep Reinforcement Learning
 
-We provide here a collection of 2D particle environments for training your agents. Much of the code structure is inspired by OpenGym of partitioning the agent, evironment, and sensors as much as possible.
+We provide here a 2D particle environment for training your agents. Much of the code structure is inspired by OpenGym of partitioning the agent, evironment, and sensors as much as possible.
 
 ## Survival (single-agent environment)
 
-This survival environment consists of a bunch of non-colliding "bad" particles moving around randomly, and the goal of the agent is to stay alive by not touching any of the "bad" particles. This survival environment was inspired by [Karpathy's Waterworld environment](http://cs.stanford.edu/people/karpathy/reinforcejs/waterworld.html) where the goal is to dodge the "bad" particles and eat "good" particles. Our two settings is "survive_1" which contains 110 bad particles, and "survive_2" which contains 55 good particles nad 55 bad particles.
+This survival environment consists of a bunch of non-colliding "bad" particles moving around randomly, and the goal of the agent is to stay alive by not touching any of the "bad" particles. This survival environment was inspired by [Karpathy's Waterworld environment](http://cs.stanford.edu/people/karpathy/reinforcejs/waterworld.html) where the goal is to dodge the "bad" particles and eat "good" particles.
 
 #### Reward scheme: 
 * +1 for every time step
@@ -17,8 +17,8 @@ This survival environment consists of a bunch of non-colliding "bad" particles m
 #### Example videos:
 
 <p align="center">
-<img src="https://github.com/ankonzoid/XY_universe/blob/master/gifs/survival_bad.gif" width="45%">
-<img src="https://github.com/ankonzoid/XY_universe/blob/master/gifs/survival_bad_good.gif" width="45%">
+<img src="gifs/survival_bad.gif" width="45%">
+<img src="gifs/survival_bad_good.gif" width="45%">
 </p>
 
 ### Usage
