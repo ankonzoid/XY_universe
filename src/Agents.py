@@ -29,7 +29,7 @@ from keras.layers import Dense
 from keras.optimizers import Adam
 from keras import regularizers
 
-class DQN():
+class DQNAgent():
 
     def __init__(self, settings, observation_size=None, action_size=None):
 

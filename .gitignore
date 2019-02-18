@@ -7,9 +7,9 @@
 log.txt
 .DS_Store
 *.pyc
-__pycache__/
+*/__pycache__/*
 *.swp
 *.swo
 .ipynb_checkpoints/
 *.pyc
-**/data/*
+*/data/*

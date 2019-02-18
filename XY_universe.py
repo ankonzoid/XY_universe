@@ -20,27 +20,24 @@
  limitations under the License.
 
 """
-import sys, os
-root_dir = os.path.join(os.path.dirname(__file__))
-sys.path.append(os.path.join(root_dir, "src"))
-sys.path.append(os.path.join(root_dir, "src", "bases"))
-from Universe import Universe
-from Sensors import Sensors
-from Environment import Environment
-from Config import Config
-
-from agents.DQN.DQN import Agent  # DQNAgent, DRQNAgent
-from settings.test import Settings  # test, survive_1, survive_2, passby_1, bump_1
+import os
+from src.Universe import Universe
+from src.Sensors import Sensors
+from src.Environment import Environment
+from src.Config import Config
+from src.Agents import DQNAgent
+from src.settings.survive_bad import Settings
 
 def main():
     # ====================
     # Settings
     # ====================
+    root_dir = os.path.join(os.path.dirname(__file__))
     settings = Settings()
     universe, sensors = Universe(settings), Sensors(settings)
     env = Environment(universe, sensors)
     pid_agents, n_agents = env.universe.pid_agents, env.universe.n_agents
-    agents = [Agent(settings, observation_size=env.observation_size, action_size=env.action_size) for i in range(n_agents)]
+    agents = [DQNAgent(settings, observation_size=env.observation_size, action_size=env.action_size) for i in range(n_agents)]
     cfg = Config(env, root_dir, settings)
     if settings.save_settings:
         cfg.write_settings(universe, sensors, agents[0])
