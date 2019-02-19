@@ -34,8 +34,8 @@ class DQNAgent():
     def __init__(self, env, sensors):
 
         # DQN agent settings
-        self.observation_size = env.obs_dim
-        self.action_size = env.action_dim
+        self.observation_size = sensors.observation_size
+        self.action_size = env.action_size
         self.sensors = sensors
         self.epsilon_range = [0.2, 0.2] # [max, min]
         self.epsilon_decay = 1.0 # multiply epsilon max by this after training
@@ -65,7 +65,7 @@ class DQNAgent():
 
     # Make observation of state
     def observe(self, state, env):
-        obs = self.sensors.sense(state, env.universe)
+        obs = self.sensors.sense(state, env)
         return obs
 
     # Follow epsilon-greedy policy

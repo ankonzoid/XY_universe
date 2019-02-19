@@ -211,8 +211,9 @@ class Environment():
 
         return state_next, reward, done
 
-    def make_animation(self, states, universe, sensors,
+    def make_animation(self, states, env, sensors,
                        save_ani=False, filename='particleworld.mp4'):
+
         fig, ax = plt.subplots(tight_layout=True)
 
         sector_length = sensors.sector_length
@@ -286,7 +287,7 @@ class Environment():
 
             # Make observation
             state_agent = states[i][0]
-            sector_observation, sectors = sensors.sense_sensors(states[i], 0, universe)
+            sector_observation, sectors = sensors.sense_sensors(states[i], 0, env)
 
             # Draw sectors
             sensor_patches, color_patches = list(), list()
@@ -365,8 +366,6 @@ class Environment():
         idx = 0
         n_type_agents = (1, 0)  # type -1, type -2
         n_type_particles = (n_good, n_bad)  # type 1 (good), type 2 (bad)
-        #n_type_particles = (0, 110)  # type 1 (good), type 2 (bad)
-        #n_type_particles = (55, 55)  # type 1 (good), type 2 (bad)
         n, d = sum(list(n_type_agents)) + sum(list(n_type_particles)), len(pind)  # everything
         # Random state
         state = -0.5 + np.random.random((n, d))  # random numbers from standard normal distribution

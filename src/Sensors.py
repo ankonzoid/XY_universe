@@ -71,13 +71,12 @@ class Sensors():
         obs = np.array(obs, dtype=np.float)
         return obs
 
-    def sense_sensors(self, state, universe):
-        n_agents = universe.n_agents
-        r_agent = universe.radius_agent
-        r_particles = universe.radius_particles
-        walls = universe.walls
-        pind_xy = [universe.state_dict["x"], universe.state_dict["y"]]
-        pind_type = universe.state_dict["type"]
+    def sense_sensors(self, state, env):
+        r_agent = env.radius_agent
+        r_particles = env.radius_particles
+        walls = env.walls
+        pind_xy = [env.state_dict["x"], env.state_dict["y"]]
+        pind_type = env.state_dict["type"]
 
         xy_agent = state[pind_xy]
         xy_particles = np.delete(state[:, pind_xy], [0], axis=0)
