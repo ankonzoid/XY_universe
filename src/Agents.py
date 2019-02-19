@@ -31,64 +31,52 @@ from keras import regularizers
 
 class DQNAgent():
 
-    def __init__(self, settings, observation_size=None, action_size=None):
+    def __init__(self, env, sensors):
 
-        # Exploration settings
-        self.epsilon_range = settings.epsilon_range  # [max, min]
-        self.epsilon_decay = settings.epsilon_decay  # multiply epsilon max by this after training
-        self.epsilon = self.epsilon_range[0]
-        self.gamma = settings.gamma  # discount parameter (important)
-
-        # DQN architecture
-        self.observation_size = observation_size
-        self.action_size = action_size
-        self.hidden_layers = settings.hidden_layers
-        self.L2_regularizer = settings.L2_regularizer
-        self.activation = settings.activation
-
-        # DQN training parameters
-        self.learning_rate = settings.learning_rate  # value function learning rate
-        self.loss = settings.loss  # "mse"
-        self.n_epochs = settings.n_epochs  # number of training epochs
-        self.verbose = False  # verbose about training?
+        # DQN agent settings
+        self.observation_size = env.obs_dim
+        self.action_size = env.action_dim
+        self.sensors = sensors
+        self.epsilon_range = [0.2, 0.2] # [max, min]
+        self.epsilon_decay = 1.0 # multiply epsilon max by this after training
+        self.epsilon = self.epsilon_range[0] # starting exploration parameter
+        self.gamma = 0.99  # discount parameter (important)
+        self.hidden_layers = [100, 100]
+        self.L2_regularizer = [1E-5, 1E-5]
+        self.learning_rate = 0.005 # value function learning rate
+        self.activation = "relu"
+        self.loss = "mse"
+        self.n_epochs = 1 # number of training epochs
+        self.memory_size = 10000 # experiences stored to memory
+        self.training_batch_size = 200 # training batch size
+        self.use_target_model = False
+        self.n_training_sessions = 20 # training sessions per training episode
+        self.verbose = False
 
         # For experience replay memory training
-        self.n_training_sessions = settings.n_training_sessions  # training sessions per training episode
-        self.training_batch_size = settings.training_batch_size  # training batch size
-        self.memory_size = settings.memory_size  # # experiences stored to memory
         self.memory = deque(maxlen=self.memory_size)  # can pop oldest experiences
 
         # For target freezing model
-        self.use_target_model = settings.use_target_model  # use and freeze target network?
+        self.use_target_model = False  # use and freeze target network?
 
         # Build DQN model
         self.model = self._build_model()  # actual model
         self.model_target = self._build_model()  # target model
 
-    def _build_model(self):
+    # Make observation of state
+    def observe(self, state, env):
+        obs = self.sensors.sense(state, env.universe)
+        return obs
 
-        model = Sequential()
-        for i, n_hidden_nodes in enumerate(self.hidden_layers):
-            if i==0:
-                model.add(Dense(self.hidden_layers[i], input_dim=self.observation_size, activation=self.activation,  kernel_regularizer=regularizers.l2(self.L2_regularizer[i])))
-            else:
-                model.add(Dense(self.hidden_layers[i], activation=self.activation,  kernel_regularizer=regularizers.l2(self.L2_regularizer[i])))
-        model.add(Dense(self.action_size, activation="linear"))
-        model.compile(loss=self.loss, optimizer=Adam(lr=self.learning_rate))
-
-        return model
-
-    # Get an action from our epsilon-greedy policy
-    def get_action(self, observation):
-
-        observation_reshaped = np.reshape(observation, [1, len(observation)])  # reshape for model input
+    # Follow epsilon-greedy policy
+    def get_action(self, obs):
+        obs_reshaped = np.reshape(obs, [1, len(obs)])
         self.epsilon = max(self.epsilon_range)
-        if np.random.rand() <= self.epsilon:
-            action = np.random.choice(list(range(self.action_size)))  # explore
-        else:
-            Q_estimate = self.model.predict(observation_reshaped)[0]
-            action = np.random.choice(np.flatnonzero(Q_estimate==np.amax(Q_estimate)))  # exploit
-
+        if np.random.rand() <= self.epsilon: # explore
+            action = np.random.choice(list(range(self.action_size)))
+        else: # exploit
+            Qpred = self.model.predict(obs_reshaped)[0]
+            action = np.random.choice(np.flatnonzero(Qpred==np.amax(Qpred)))
         return action
 
     # Train our network using replay mini-batch experiences
@@ -144,7 +132,7 @@ class DQNAgent():
         return loss_avg
 
     # Store to agent memory where experience = (observation, action, reward, observation_next, done)
-    def store(self, experience):
+    def memorize(self, experience):
         self.memory.append(experience)
 
     # Save agent Q-model
@@ -156,9 +144,35 @@ class DQNAgent():
         self.model = load_model(filename)
         self.model.compile(loss=self.loss, optimizer=Adam(lr=self.learning_rate))
 
+    def write_settings(self, filename):
+        f = open(filename, 'w')
+        f.write('\n')
+        attrs = vars(self)
+        for item in sorted(attrs.items()):
+            (item_name, item_value) = item
+            if item_name not in ["memory", "model", "model_target"]:
+                f.write('agent.{} = {}\n'.format(item_name, item_value))
+
     # ============================================
     # Secondary functions
     # ============================================
+
+    # Build FC network
+    def _build_model(self):
+        model = Sequential()
+        for i, n_hidden_nodes in enumerate(self.hidden_layers):
+            if i==0:
+                model.add(Dense(self.hidden_layers[i],
+                                input_dim=self.observation_size,
+                                activation=self.activation,
+                                kernel_regularizer=regularizers.l2(self.L2_regularizer[i])))
+            else:
+                model.add(Dense(self.hidden_layers[i],
+                                activation=self.activation,
+                                kernel_regularizer=regularizers.l2(self.L2_regularizer[i])))
+        model.add(Dense(self.action_size, activation="linear"))
+        model.compile(loss=self.loss, optimizer=Adam(lr=self.learning_rate))
+        return model
 
     # Update target network
     def _update_target_model(self):

@@ -23,28 +23,18 @@
 """
 class Environment():
 
-    def __init__(self, universe, sensors):
+    def __init__(self, universe):
         self.universe = universe
-        self.sensors = sensors
-        self.observation_size = sensors.observation_size
-        self.action_size = universe.action_size
 
     def reset(self):
         state = self.universe.reset()
         return state
 
-    def make_observation(self, state, pid_agent):
-        observations = self.sensors.sense(state, pid_agent, self.universe)
-        return observations
+    def step(self, state, actions):
+        state_next, reward, done = self.universe.step(state, actions)
+        return state_next, reward, done
 
-    def step(self, state, pid_agents, actions):
-        state_next, rewards, dones = self.universe.step(state, pid_agents, actions)
-        observations_next = []
-        for pid_agent in pid_agents:
-            observation_next = self.make_observation(state_next, pid_agent)
-            observations_next.append(observation_next)
-        return observations_next, state_next, rewards, dones
-
-    def make_animation(self, states, save_animation=False, save_filename='animation.mp4'):
+    def make_animation(self, states, save_ani=False, filename='animation.mp4'):
         self.universe.make_animation(states, self.universe, self.sensors,
-                                     save_animation=save_animation, save_filename=save_filename)
+                                     save_ani=save_ani, filename=filename)
+

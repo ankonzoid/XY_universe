@@ -34,27 +34,29 @@ from matplotlib.patches import Wedge
 
 class Universe():
 
-    def __init__(self, settings):
+    def __init__(self, n_good, n_bad):
+
+        # Name
+        self.name = "survival"  # agent settings
+
+        # Universe settings
+        self.dt = 1.0/30.0
+        self.mass = 0.05
+        self.dv_agent, self.v_particles = 0.01, 0.05
+        self.radius_agent, self.radius_particles = 0.05, 0.1
+        self.box_half_length = 2.0
+        self.reward_mode = "collect"  # "collect", "go_x"
+        self.competition_mode = "none"  # "none", "coop", "compete"
+        self.particle_mode = "none"  # "none", "chase_agent"
+        self.add_wall_collisions = True
+        self.add_particle_collisions = False
+        self.add_agent_interactions = True
+        self.state_init, self.pid_agents = self._init_state(n_good, n_bad)
 
         # Read settings
-        self.name = settings.name
-        self.dt = settings.dt
-        self.mass = settings.mass
-        self.dv_agent = settings.dv_agent
-        self.v_particles = settings.v_particles
-        self.particle_mode = settings.particle_mode
-        self.radius_agent = settings.radius_agent
-        self.radius_particles = settings.radius_particles
-        self.box_half_length = settings.box_half_length
-        self.add_wall_collisions = settings.add_wall_collisions
-        self.add_particle_collisions = settings.add_particle_collisions
-        self.add_agent_interactions = settings.add_agent_interactions
-        self.state_init = settings.state_init
-        self.pid_agents = settings.pid_agents
-        self.n_agents = len(settings.pid_agents)
+        self.n_agents = len(self.pid_agents)
         self.reward_mode = settings.reward_mode
         self.competition_mode = settings.competition_mode
-
         self.types_detect = settings.types_detect
 
         # State and action space
@@ -74,7 +76,7 @@ class Universe():
         state = self.state_init.copy()
         return state
 
-    def step(self, state, pid_agents, actions):
+    def step(self, state, action):
         actname = self.action_name_dict
         pind = self.state_dict
         (pind_x, pind_y) = (pind["x"], pind["y"])
@@ -98,17 +100,16 @@ class Universe():
         if np.any(state_next[pid_agents, pind_type] >= 0):
             sys.exit("err: Trying to perform action on non-agent particle!")
 
-        for (pid_agent, action) in zip(pid_agents, actions):
-            if actname[action] == "up":
-                state_next[pid_agent,pind_vy] += self.dv_agent
-            elif actname[action] == "right":
-                state_next[pid_agent,pind_vx] += self.dv_agent
-            elif actname[action] == "down":
-                state_next[pid_agent,pind_vy] += -self.dv_agent
-            elif actname[action] == "left":
-                state_next[pid_agent,pind_vx] += -self.dv_agent
-            else:
-                sys.exit("Invalid action!")
+        if actname[action] == "up":
+            state_next[0, pind_vy] += self.dv_agent
+        elif actname[action] == "right":
+            state_next[0, pind_vx] += self.dv_agent
+        elif actname[action] == "down":
+            state_next[0, pind_vy] += -self.dv_agent
+        elif actname[action] == "left":
+            state_next[0, pind_vx] += -self.dv_agent
+        else:
+            sys.exit("Invalid action!")
 
         # ===========================
         # Perform particle actions
@@ -119,8 +120,7 @@ class Universe():
             pid_chase = 0  # chase index
             state_next[n_agents:,pind_vxy] = state_next[pid_chase,pind_xy] - state_next[n_agents:,pind_xy]  # chase direction
             v_norm_particles = np.linalg.norm(state_next[n_agents:, pind_vxy], axis=1)  # norm of all velocities
-            state_next[n_agents:,pind_vxy] = self.v_particles * np.divide(state_next[n_agents:,pind_vxy],
-                                                                          v_norm_particles[:,None])
+            state_next[n_agents:,pind_vxy] = self.v_particles * np.divide(state_next[n_agents:,pind_vxy], v_norm_particles[:,None])
         else:
             sys.exit("err: Invalid particle mode of {}".format(self.particle_mode))
 
@@ -270,7 +270,7 @@ class Universe():
 
         return state_next, rewards, dones
 
-    def make_animation(self, states, universe, sensors, save_animation=False, save_filename='waterworld.mp4'):
+    def make_animation(self, states, universe, sensors, save_ani=False, filename='particleworld.mp4'):
         fig, ax = plt.subplots(tight_layout=True)
 
         sector_length = sensors.sector_length
@@ -394,8 +394,8 @@ class Universe():
         ani = animation.FuncAnimation(fig, animate, len(states))
 
         # Save or show animation
-        if save_animation:
-            ani.save(save_filename, fps=int(1/self.dt), extra_args=['-vcodec', 'libx264'])
+        if save_ani:
+            ani.save(filename, fps=int(1/self.dt), extra_args=['-vcodec', 'libx264'])
         else:
             plt.show()
         plt.close('all')
@@ -414,3 +414,49 @@ class Universe():
         walls = [(corner_1, corner_2), (corner_2, corner_3),
                  (corner_3, corner_4), (corner_4, corner_1)]
         return walls
+
+    def _init_state(self, n_good, n_bad, seed=0):
+        np.random.seed(seed)
+        pind = {"x": 0, "y": 1, "vx": 2, "vy": 3, "type": 4}
+        (pind_xy, pind_vxy) = ([pind["x"], pind["y"]], [pind["vx"], pind["vy"]])
+        (pind_vx, pind_vy, pind_type) = (pind["vx"], pind["vy"], pind["type"])
+
+        # Define initial state
+        idx = 0
+        n_type_agents = (1, 0)  # type -1, type -2
+        n_type_particles = (n_good, n_bad)  # type 1 (good), type 2 (bad)
+        #n_type_particles = (0, 110)  # type 1 (good), type 2 (bad)
+        #n_type_particles = (55, 55)  # type 1 (good), type 2 (bad)
+        n, d = sum(list(n_type_agents)) + sum(list(n_type_particles)), len(pind)  # everything
+        # Random state
+        state = -0.5 + np.random.random((n, d))  # random numbers from standard normal distribution
+        state[:,pind_xy] *= 4.0  # spread out particle positions
+        for i, n_type in enumerate(n_type_agents):
+            state[idx:(idx+n_type),pind_type] = -(i+1)
+            idx += n_type
+        for i, n_type in enumerate(n_type_particles):
+            state[idx:(idx+n_type),pind_type] = (i+1)
+            idx += n_type
+
+        # Make check
+        if idx != n:
+            sys.exit("err: idx is not equal to n!")
+
+        # Find pids
+        n_total = state.shape[0]
+        pid_agents = np.where(state[:,pind_type] < 0)[0]
+        n_agents = len(pid_agents)
+        n_particles = n_total - n_agents
+
+        # Set particle velocities
+        if n_particles > 0:
+            v_norm = np.linalg.norm(state[n_agents:,pind_vxy], axis=1)  # velocity magnitudes
+            state[n_agents:,pind_vxy] = self.v_particles * np.divide(state[n_agents:,pind_vxy], v_norm[:, None])
+
+        # Set agent velocities
+        if n_agents > 0:
+            state[:n_agents,pind_vx], state[:n_agents,pind_vy] = 0.0, 0.0  # set zero agent velocities
+
+        # Reset seed randomly
+        np.random.seed(seed=None)
+        return state, pid_agents

@@ -20,83 +20,101 @@
  limitations under the License.
 
 """
-import os
+import os, csv, datetime
 from src.Universe import Universe # the full simulation
 from src.Sensors import Sensors # sensors for universe
 from src.Environment import Environment # agent environment based on sensors
-from src.Config import Config
 from src.Agents import DQNAgent
-from src.Settings import Settings
 
 def main():
+
+    def _make_dir(dir):
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+
+    # Run settings
+    n_episodes = 500
+    n_iter = 2000
+
+    # Config settings
+    save = True # save all settings for all classes to text
+
+    reward_save_thresh = 2000 # reward threshold for logging
+    count_reward_save_thresh = 10  # num episode of threshold log for animation save
+
     # ====================
     # Settings
     # ====================
     root_dir = os.path.join(os.path.dirname(__file__))
-    settings = Settings(n_good=0, n_bad=110)
-    universe, sensors = Universe(settings), Sensors(settings)
-    env = Environment(universe, sensors)
-    pid_agents, n_agents = env.universe.pid_agents, env.universe.n_agents
-    agents = [DQNAgent(settings, observation_size=env.observation_size, action_size=env.action_size) for i in range(n_agents)]
-    cfg = Config(env, root_dir, settings)
-    if settings.save_settings:
-        cfg.write_settings(universe, sensors, agents[0])
-    n_episodes, n_iter = settings.n_episodes, settings.n_iter
+    outDir = os.path.join(root_dir, "output")
+
+    env = Environment(universe=Universe(n_good=0, n_bad=110))
+
+    agent = DQNAgent(env=env, sensors=Sensors(n_sectors=4, sector_radius=1.0))
+
+    #_make_dir(os.path.join(outDir, )
+    #_make_dir(os.path.join(outDir, "models"))
+    #_make_dir(os.path.join(outDir, "animations"))
+
+    logFile = os.path.join(outDir, "log.csv")
 
     # ====================
     # Run
     # ====================
+    n_reward_save = 0
     for episode in range(n_episodes):
 
         # Generate episode
-        states_episode, iter_episode, rewards_episode, losses_episode = [], 0, [0]*n_agents, [-1]*n_agents
-        state = env.reset()
-        observations = [env.make_observation(state, pid_agent) for pid_agent in pid_agents]
-        while iter_episode < n_iter:
-            actions = [agents[i].get_action(observations[i]) for i in range(n_agents)]  # get action
-            observations_next, state_next, rewards, dones = env.step(state, pid_agents, actions)  # evolve
-            for i in range(n_agents):
-                agents[i].store((observations[i], actions[i], rewards[i], observations_next[i], dones[i]))  # append
-                rewards_episode[i] += rewards[i]
-            states_episode.append(state_next)
-            state, observations = state_next, observations_next  # transition
-            iter_episode += 1
-            if True in dones:  # termination condition
-                break
+        state = env.reset() # initialize universe
+        obs = agent.observe(state, env) # observe universe
+        states, rewards, losses, i = [], [], [], 0
+        while i < n_iter:
+            action = agent.get_action(obs) # get action
+            state_next, reward, done = env.step(state, action) # evolve universe
+            obs_next = agent.observe(state, env) # observe universe
+            agent.memorize((obs, action, rewards, obs_next, done))  # memorize
+            rewards.append(reward) # collect
+            states.append(state_next) # collect
+            state, obs = state_next, obs_next  # transition
+            i += 1
+            if done: break # termination condition
 
         # Print and check if we hit reward threshold
-        print("[ep {:d}/{:d}] iter: {:d}/{:d}".format(episode+1, n_episodes, iter_episode, n_iter), flush=True)
-        condition_save = False
-        for i in range(n_agents):
-            print("  (agent-{:d}) eps: {:.3f}, rew: {:.2f}, mem: {:d}".format(i, agents[i].epsilon, rewards_episode[i], len(agents[i].memory)), end='\n', flush=True)
-            cfg.n_reward_threshold_save[i] += (rewards_episode[i] >= cfg.reward_threshold_save)
-            if (episode == 0) or (cfg.n_reward_threshold_save[i] % cfg.episodes_reward_threshold_save == 1):
-                condition_save = True
-                cfg.n_reward_threshold_save[i] += (rewards_episode[i] >= cfg.reward_threshold_save)
+        print("[ep {}/{}] iter: {}/{}, rew: {:.2f}, mem: {}, eps: {:.3f}".format(episode+1, n_episodes, i, n_iter, sum(rewards), len(agent.memory), agent.epsilon), flush=True)
 
-        # Save models + animations
-        if condition_save:
-            if cfg.save_model:
-                for i in range(n_agents):
-                    print("    -> saving agent-{} model".format(i), flush=True)
-                    agents[i].save_model(cfg.model_filename(episode, i))
-            if cfg.save_animation:
-                print("    -> saving animation", flush=True)
-                env.make_animation(states_episode, save_animation=True, save_filename=cfg.animation_filename(episode))
+        n_reward_save += (sum(rewards) >= reward_save_thresh)
+        save_condition = save and (episode == 0) or (n_reward_save % count_reward_save_thresh == 1)
+
+        # Save model
+        if save_condition:
+            modelFile = os.path.join(outDir, "models/model_ep={}.h5".format(episode))
+            print("    -> saving agent model".format(i), flush=True)
+            agent.save_model(modelFile)
+
+        # Save animation
+        if save_condition:
+            aniFile = os.path.join(outDir, "animations/ani_ep={}.mp4".format(episode))
+            print("    -> saving animation", flush=True)
+            env.make_animation(states, save_ani=True, filename=aniFile)
 
         # Train agents
-        for i in range(n_agents):
-            if len(agents[i].memory) >= agents[i].training_batch_size:
-                losses_episode[i] = agents[i].train()  # automatically adjusts epsilon
-                print("  -> training agent-{}... sessions={}, freeze={}, batch={:d}, epochs={:d}, loss={:.6f}".format(i, agents[i].n_training_sessions, agents[i].use_target_model, agents[i].training_batch_size, agents[i].n_epochs, losses_episode[i]), flush=True)
+        if len(agent.memory) >= agent.training_batch_size:
+            loss = agent.train()  # automatically adjusts epsilon
+            print("  -> training agent-{}... sessions={}, freeze={}, batch={:d}, epochs={:d}, loss={:.6f}".format(i, agent.n_training_sessions, agent.use_target_model, agent.training_batch_size, agent.n_epochs, losses), flush=True)
 
         # Save log
-        if cfg.save_log:
-            headers, values = ["episode", "iter"], [episode, iter_episode]
-            for i in range(n_agents):
-                headers.extend(["rew_{}".format(i), "loss_{}".format(i), "eps_{}".format(i)])
-                values.extend([rewards_episode[i], losses_episode[i], agents[i].epsilon])
-            cfg.write_log(headers, values)
+        if save:
+            header, values = ["episode", "iter"], [episode, i]
+            header.extend(["rew", "loss", "eps"])
+            values.extend([reward, loss, agent.epsilon])
+
+            with open(logFile, ('w' if episode == 0 else 'a')) as f:
+                writer = csv.writer(f)
+                if episode == 0:
+                    header.append("time")
+                    writer.writerow(header)
+                values.append(datetime.datetime.now().strftime("%B %d %Y %I:%M:%S %p"))
+                writer.writerow(values)
 
 # Driver
 if __name__ == "__main__":

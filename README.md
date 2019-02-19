@@ -25,14 +25,14 @@ This survival environment consists of a bunch of non-colliding "bad" particles m
 
 Run the command
 
-> python XY_universe.py
+> python3 XY_universe.py
 
 ### Libraries required
 
 * tensorflow, keras, numpy, scipy, matplotlib, h5py
 * ffmpeg, tkinter
 
-### Notes:
+### Notes
 
 MacOS might need you to create: ~/.matplotlib/matplotlibrc and add the line "backend: tkAgg"
 
@@ -52,6 +52,6 @@ MacOS might need you to create: ~/.matplotlib/matplotlibrc and add the line "bac
 
 * ["Let's Make an A3C: Implementation"](https://jaromiru.com/2017/03/26/lets-make-an-a3c-implementation/)
 
-### Authors:
+### Authors
 
 Anson Wong

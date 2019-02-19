@@ -29,48 +29,49 @@ import numpy as np
 
 class Sensors():
 
-    def __init__(self, settings):
+    def __init__(self, n_sectors, sector_radius):
 
-        # Read settings
-        self.n_sectors = settings.n_sectors
-        self.sector_length = settings.sector_length  # make sure this is > radius_agent
-        self.types_detect = settings.types_detect  # particles type to detect
-        self.append_vxy_xy = settings.append_vxy_xy  # append (vx,vy,x,y) to observation?
+        # Settings
+        self.n_sectors = n_sectors
+        self.sector_length = sector_radius # make sure this is > radius_agent
+        self.types_detect = [0, 1, 2]  # particle types (1=good, 2=bad, -1/-2=agents, 0=walls)
+        self.append_vxy_xy = [True, True, False, False] # append (vx,vy,x,y) to observation?
 
         # Observation space
         self.sector_dim_size = len(self.types_detect)
-        self.observation_size = self.sector_dim_size * self.n_sectors + self.append_vxy_xy.count(True)  # add velocity
+        self.observation_size = self.sector_dim_size * self.n_sectors + \
+                                self.append_vxy_xy.count(True)  # add velocity
 
-    def sense(self, state, pid_agent, universe):
+    # Sense
+    def sense(self, state, universe):
         # Sense environment
-        sector_observation, sectors = self.sense_sensors(state, pid_agent, universe)
+        sector_obs, sectors = self.sense_sensors(state, universe)
 
         # Make agent observations
-        observation = list()  # flattened sensor observations
-        for sublist in sector_observation:
+        obs = list()  # flattened sensor observations
+        for sublist in sector_obs:
             for item in sublist:
-                observation.append(item)
+                obs.append(item)
 
         # Append the velocities
-        state_observer = state[pid_agent,:]
-        pind = universe.state_dict
+        pidx = universe.state_dict
         if self.append_vxy_xy[0] == True:
-            observation.append(state_observer[pind["vx"]])  # append agent vx
+            obs.append(state[pidx["vx"]])  # append agent vx
         if self.append_vxy_xy[1] == True:
-            observation.append(state_observer[pind["vy"]])  # append agent vy
+            obs.append(state[pidx["vy"]])  # append agent vy
         if self.append_vxy_xy[2] == True:
-            observation.append(state_observer[pind["x"]])  # append agent x
+            obs.append(state[pidx["x"]])  # append agent x
         if self.append_vxy_xy[3] == True:
-            observation.append(state_observer[pind["y"]])  # append agent y
+            obs.append(state[pidx["y"]])  # append agent y
 
-        if len(observation) != self.observation_size:
+        if len(obs) != self.observation_size:
             sys.exit("err: Inconsistent observation size!")
 
         # Update observation
-        observation = np.array(observation, dtype=np.float)
-        return observation
+        obs = np.array(obs, dtype=np.float)
+        return obs
 
-    def sense_sensors(self, state, pid_agent, universe):
+    def sense_sensors(self, state, universe):
         n_agents = universe.n_agents
         r_agent = universe.radius_agent
         r_particles = universe.radius_particles
@@ -78,15 +79,15 @@ class Sensors():
         pind_xy = [universe.state_dict["x"], universe.state_dict["y"]]
         pind_type = universe.state_dict["type"]
 
-        xy_agent = state[pid_agent, pind_xy]
-        xy_particles = np.delete(state[:, pind_xy], [pid_agent], axis=0)
-        type_particles = np.delete(state[:, pind_type], [pid_agent], axis=0)
+        xy_agent = state[pind_xy]
+        xy_particles = np.delete(state[:, pind_xy], [0], axis=0)
+        type_particles = np.delete(state[:, pind_type], [0], axis=0)
 
         # Sensor parameters
         n_sectors = self.n_sectors
         sector_length = self.sector_length
 
-        sectors, dtheta_sectors = self._make_sectors(n_sectors, sector_length)
+        sectors, dtheta_sectors = self._make_sectors(n_sectors)
         sector_observation = self._make_sector_observation(xy_agent, r_agent, sectors, dtheta_sectors, sector_length,
                                     xy_particles, type_particles, r_particles, walls)
 
@@ -98,7 +99,7 @@ class Sensors():
     #
     # ==================================
 
-    def _make_sectors(self, n_sectors, length):
+    def _make_sectors(self, n_sectors):
         # Define the sectors by a scalar theta of its maximum value
         # Note: theta is counter-clockwise away from positive x-axis
         theta_range = 2*np.pi
