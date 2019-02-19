@@ -21,50 +21,35 @@
 
 """
 import os, csv, datetime
-from src.Universe import Universe # the full simulation
-from src.Sensors import Sensors # sensors for universe
 from src.Environment import Environment # agent environment based on sensors
+from src.Sensors import Sensors # sensors for universe
 from src.Agents import DQNAgent
 
+def _make_dir(dir):
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+
 def main():
-
-    def _make_dir(dir):
-        if not os.path.exists(dir):
-            os.makedirs(dir)
-
-    # Run settings
-    n_episodes = 500
-    n_iter = 2000
-
-    # Config settings
-    save = True # save all settings for all classes to text
-
-    reward_save_thresh = 2000 # reward threshold for logging
-    count_reward_save_thresh = 10  # num episode of threshold log for animation save
-
     # ====================
     # Settings
     # ====================
-    root_dir = os.path.join(os.path.dirname(__file__))
-    outDir = os.path.join(root_dir, "output")
-
-    env = Environment(universe=Universe(n_good=0, n_bad=110))
-
+    env = Environment(n_good=0, n_bad=110)
     agent = DQNAgent(env=env, sensors=Sensors(n_sectors=4, sector_radius=1.0))
 
-    #_make_dir(os.path.join(outDir, )
-    #_make_dir(os.path.join(outDir, "models"))
-    #_make_dir(os.path.join(outDir, "animations"))
-
+    save = True
+    outDir = os.path.join(os.path.dirname(__file__), "output")
+    _make_dir(outDir)
     logFile = os.path.join(outDir, "log.csv")
 
     # ====================
     # Run
     # ====================
+    n_episodes = 500
+    n_iter = 2000
     n_reward_save = 0
     for episode in range(n_episodes):
 
-        # Generate episode
+        # Generate episode following epsilon-greedy policy
         state = env.reset() # initialize universe
         obs = agent.observe(state, env) # observe universe
         states, rewards, losses, i = [], [], [], 0
@@ -80,34 +65,34 @@ def main():
             if done: break # termination condition
 
         # Print and check if we hit reward threshold
-        print("[ep {}/{}] iter: {}/{}, rew: {:.2f}, mem: {}, eps: {:.3f}".format(episode+1, n_episodes, i, n_iter, sum(rewards), len(agent.memory), agent.epsilon), flush=True)
+        print("[ep {}/{}] iter: {}/{}, rew: {:.2f}, mem: {}, eps: {:.3f}".format(episode+1, n_episodes, i+1, n_iter, sum(rewards), len(agent.memory), agent.epsilon), flush=True)
 
-        n_reward_save += (sum(rewards) >= reward_save_thresh)
-        save_condition = save and (episode == 0) or (n_reward_save % count_reward_save_thresh == 1)
+        n_reward_save += (sum(rewards) >= 2000)
+        save_condition = save and (episode == 0 or n_reward_save % 10 == 1)
 
         # Save model
         if save_condition:
-            modelFile = os.path.join(outDir, "models/model_ep={}.h5".format(episode))
-            print("    -> saving agent model".format(i), flush=True)
+            modelFile = os.path.join(outDir, "model_ep={}.h5".format(episode))
+            print("    -> saving agent model", flush=True)
             agent.save_model(modelFile)
 
         # Save animation
         if save_condition:
-            aniFile = os.path.join(outDir, "animations/ani_ep={}.mp4".format(episode))
+            aniFile = os.path.join(outDir, "ani_ep={}.mp4".format(episode))
             print("    -> saving animation", flush=True)
             env.make_animation(states, save_ani=True, filename=aniFile)
 
         # Train agents
+        loss = -1
         if len(agent.memory) >= agent.training_batch_size:
             loss = agent.train()  # automatically adjusts epsilon
-            print("  -> training agent-{}... sessions={}, freeze={}, batch={:d}, epochs={:d}, loss={:.6f}".format(i, agent.n_training_sessions, agent.use_target_model, agent.training_batch_size, agent.n_epochs, losses), flush=True)
+            print("  -> training agent... sessions={}, freeze={}, batch={:d}, epochs={:d}, loss={:.6f}".format(agent.n_training_sessions, agent.use_target_model, agent.training_batch_size, agent.n_epochs, losses), flush=True)
 
         # Save log
         if save:
-            header, values = ["episode", "iter"], [episode, i]
-            header.extend(["rew", "loss", "eps"])
-            values.extend([reward, loss, agent.epsilon])
-
+            header, values = ["episode", "iter"], [episode+1, i+1]
+            header.extend(["reward", "loss", "epsilon"])
+            values.extend([sum(rewards), loss, agent.epsilon])
             with open(logFile, ('w' if episode == 0 else 'a')) as f:
                 writer = csv.writer(f)
                 if episode == 0:
