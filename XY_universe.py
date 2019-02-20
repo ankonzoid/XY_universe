@@ -86,7 +86,7 @@ def main():
         loss = -1
         if len(agent.memory) >= agent.training_batch_size:
             loss = agent.train()  # automatically adjusts epsilon
-            print("  -> training agent... sessions={}, freeze={}, batch={:d}, epochs={:d}, loss={:.6f}".format(agent.n_training_sessions, agent.use_target_model, agent.training_batch_size, agent.n_epochs, losses), flush=True)
+            print("  -> training agent... sessions={}, batch={:d}, epochs={:d}, loss={:.6f}".format(agent.n_training_sessions, agent.training_batch_size, agent.n_epochs, losses), flush=True)
 
         # Save log
         if save:
