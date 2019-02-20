@@ -2,12 +2,6 @@
 
  Environment.py  (author: Anson Wong / git: ankonzoid)
 
- External functions:
-   reset, step, make_animation
-
- Internal functions:
-   _get_walls
-
 
  Copyright 2019 Anson Wong
 
@@ -36,10 +30,8 @@ class Environment():
 
     def __init__(self, n_good, n_bad):
 
-        # Name
-        self.name = "survival"  # agent settings
-
         # Universe settings
+        self.name = "survival"
         self.dt = 1.0/30.0
         self.mass = 0.05
         self.dv_agent, self.v_particles = 0.01, 0.05
@@ -287,7 +279,7 @@ class Environment():
 
             # Make observation
             state_agent = states[i][0]
-            sector_observation, sectors = sensors.sense_sensors(states[i], 0, env)
+            sector_observation, sectors = sensors.sense(states[i], env)
 
             # Draw sectors
             sensor_patches, color_patches = list(), list()

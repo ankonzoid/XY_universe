@@ -80,7 +80,7 @@ def main():
         if save_condition:
             aniFile = os.path.join(outDir, "ani_ep={}.mp4".format(episode))
             print("    -> saving animation", flush=True)
-            env.make_animation(states, save_ani=True, filename=aniFile)
+            env.make_animation(states, env, agent.sensors, save_ani=True, filename=aniFile)
 
         # Train agents
         loss = -1

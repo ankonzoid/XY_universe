@@ -1,9 +1,6 @@
 """
 
- DQN.py  (author: Anson Wong / git: ankonzoid)
-
- Functions:
-   get_action, train, store, save_model, load_model
+ Agents.py  (author: Anson Wong / git: ankonzoid)
 
 
  Copyright 2019 Anson Wong
@@ -49,19 +46,14 @@ class DQNAgent():
         self.n_epochs = 1 # number of training epochs
         self.memory_size = 10000 # experiences stored to memory
         self.training_batch_size = 200 # training batch size
-        self.use_target_model = False
         self.n_training_sessions = 20 # training sessions per training episode
         self.verbose = False
 
         # For experience replay memory training
         self.memory = deque(maxlen=self.memory_size)  # can pop oldest experiences
 
-        # For target freezing model
-        self.use_target_model = False  # use and freeze target network?
-
         # Build DQN model
         self.model = self._build_model()  # actual model
-        self.model_target = self._build_model()  # target model
 
     # Make observation of state
     def observe(self, state, env):
@@ -86,26 +78,26 @@ class DQNAgent():
 
             # Sample a mini-batch from replay memory
             minibatch = random.sample(self.memory, min(self.training_batch_size, len(self.memory)))
-            (observations, actions, rewards, observations_next, dones) = ([], [], [], [], [])
-            for (observation, action, reward, observation_next, done) in minibatch:
-                observations.append(observation)
+            (obs, actions, rewards, obs_next, dones) = ([], [], [], [], [])
+            for (observation, action, reward, obs_next, done) in minibatch:
+                obs.append(observation)
                 actions.append(action)
                 rewards.append(reward)
-                observations_next.append(observation_next)
+                obs_next.append(obs_next)
                 dones.append(done)
 
-            observations = np.array(observations, dtype=np.float)  # (batch_size, observation_size)
+            obs = np.array(obs, dtype=np.float)  # (batch_size, observation_size)
             actions = np.array(actions, dtype=np.int)  # (batch_size, )
             rewards = np.array(rewards, dtype=np.float)  # (batch_size, )
-            observations_next = np.array(observations_next, dtype=np.float)  # (batch_size, observation_size)
+            obs_next = np.array(obs_next, dtype=np.float)  # (batch_size, observation_size)
             dones = np.array(dones, dtype=np.int)  # (batch_size, )
 
             # Compute Q estimate
-            Q = self.model.predict(observations)  # (batch_size, action_size)
+            Q = self.model.predict(obs)  # (batch_size, action_size)
             if self.use_target_model:
-                Q_next = self.model_target.predict(observations_next)  # (batch_size, action_size)
+                Q_next = self.model_target.predict(obs_next)  # (batch_size, action_size)
             else:
-                Q_next = self.model.predict(observations_next)  # (batch_size, action_size)
+                Q_next = self.model.predict(obs_next)  # (batch_size, action_size)
 
             # Compute target Q
             Q_target = Q.copy()  # (batch_size, action_size)
@@ -116,7 +108,7 @@ class DQNAgent():
                 loss_avg += np.abs(Q[i, action] - Q_target[i, action])**2
 
             # Train model
-            self.model.fit(observations, Q_target, epochs=self.n_epochs, verbose=self.verbose)
+            self.model.fit(obs, Q_target, epochs=self.n_epochs, verbose=self.verbose)
 
         # Compute average loss
         loss_avg /= self.training_batch_size
@@ -124,10 +116,6 @@ class DQNAgent():
 
         # Decay agent epsilon max value
         self.epsilon_range[0] *= self.epsilon_decay
-
-        # Update target network
-        if self.use_target_model:
-            self._update_target_model()
 
         return loss_avg
 
@@ -173,7 +161,3 @@ class DQNAgent():
         model.add(Dense(self.action_size, activation="linear"))
         model.compile(loss=self.loss, optimizer=Adam(lr=self.learning_rate))
         return model
-
-    # Update target network
-    def _update_target_model(self):
-        self.model_target.set_weights(self.model.get_weights())  # transfer weights to target model

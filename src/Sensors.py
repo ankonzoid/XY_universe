@@ -2,12 +2,6 @@
 
  Sensors.py  (author: Anson Wong / git: ankonzoid)
 
- External functions:
-   sense, sense_sensors
-
- Internal functions:
-   _make_sectors, _bins_included, _make_sector_observation
-
 
  Copyright 2019 Anson Wong
 
@@ -43,9 +37,24 @@ class Sensors():
                                 self.append_vxy_xy.count(True)  # add velocity
 
     # Sense
-    def sense(self, state, universe):
-        # Sense environment
-        sector_obs, sectors = self.sense_sensors(state, universe)
+    def sense(self, state, env):
+
+        # Get particle positions and types
+        pidx = env.state_dict
+        pind_xy = [pidx["x"], pidx["y"]]
+        pind_type = pidx["type"]
+
+        xy_agent = state[0, pind_xy]
+        xy_particles = np.delete(state[:, pind_xy], [0], axis=0)
+        type_particles = np.delete(state[:, pind_type], [0], axis=0)
+
+        # Create sensors and sense with them
+        sectors, _ = self._make_sectors(self.n_sectors)
+        sector_obs = self._make_sector_observation(xy_agent,
+                                                   env.radius_agent, sectors,
+                                                   self.sector_length,
+                                                   xy_particles, type_particles,
+                                                   env.radius_particles, env.walls)
 
         # Make agent observations
         obs = list()  # flattened sensor observations
@@ -54,15 +63,16 @@ class Sensors():
                 obs.append(item)
 
         # Append the velocities
-        pidx = universe.state_dict
+        state_obs = state[0, :]
+        pidx = env.state_dict
         if self.append_vxy_xy[0] == True:
-            obs.append(state[pidx["vx"]])  # append agent vx
+            obs.append(state_obs[pidx["vx"]])  # append agent vx
         if self.append_vxy_xy[1] == True:
-            obs.append(state[pidx["vy"]])  # append agent vy
+            obs.append(state_obs[pidx["vy"]])  # append agent vy
         if self.append_vxy_xy[2] == True:
-            obs.append(state[pidx["x"]])  # append agent x
+            obs.append(state_obs[pidx["x"]])  # append agent x
         if self.append_vxy_xy[3] == True:
-            obs.append(state[pidx["y"]])  # append agent y
+            obs.append(state_obs[pidx["y"]])  # append agent y
 
         if len(obs) != self.observation_size:
             sys.exit("err: Inconsistent observation size!")
@@ -70,27 +80,6 @@ class Sensors():
         # Update observation
         obs = np.array(obs, dtype=np.float)
         return obs
-
-    def sense_sensors(self, state, env):
-        r_agent = env.radius_agent
-        r_particles = env.radius_particles
-        walls = env.walls
-        pind_xy = [env.state_dict["x"], env.state_dict["y"]]
-        pind_type = env.state_dict["type"]
-
-        xy_agent = state[pind_xy]
-        xy_particles = np.delete(state[:, pind_xy], [0], axis=0)
-        type_particles = np.delete(state[:, pind_type], [0], axis=0)
-
-        # Sensor parameters
-        n_sectors = self.n_sectors
-        sector_length = self.sector_length
-
-        sectors, dtheta_sectors = self._make_sectors(n_sectors)
-        sector_observation = self._make_sector_observation(xy_agent, r_agent, sectors, dtheta_sectors, sector_length,
-                                    xy_particles, type_particles, r_particles, walls)
-
-        return sector_observation, sectors
 
     # ==================================
     #
@@ -120,8 +109,11 @@ class Sensors():
             idx_bins.append((idx_bin_center - (i+1)) % n_bins)
         return idx_bins
 
-    def _make_sector_observation(self, xy_agent, r_agent, sectors, dtheta_sectors, sector_length,
-               xy_particles, type_particles, r_particles, walls):
+    def _make_sector_observation(self, xy_agent,
+                                 r_agent, sectors,
+                                 sector_length,
+                                 xy_particles, type_particles,
+                                 r_particles, walls):
 
         # Compute distances of all particles from agent
         xy_particles_relative = xy_particles - xy_agent  # particle relative to agent
@@ -234,12 +226,11 @@ class Sensors():
         B1_x, B1_y = ptB1
         B2_x, B2_y = ptB2
         dx_B, dy_B = B2_x - B1_x, B2_y - B1_y
-        # compute determinant
-        DET = (-dx_A * dy_B + dy_A * dx_B)
-        if np.abs(DET) < DET_TOLERANCE: return (0, 0, 0, 0, 0)  # lines are parallel if DET is too small
+        DET = (-dx_A * dy_B + dy_A * dx_B) # compute determinant
+        if np.abs(DET) < DET_TOLERANCE: return (0, 0, 0, 0, 0) # parallel lines if DET small
         DETinv = 1.0 / DET  # now, the determinant should be OK
-        r = DETinv * (-dy_B * (B1_x - A1_x) + dx_B * (B1_y - A1_y))  # find the scalar amount along the "self" segment
-        s = DETinv * (-dy_A * (B1_x - A1_x) + dx_A * (B1_y - A1_y))  # find the scalar amount along the input line
-        xi = (A1_x + r * dx_A + B1_x + s * dx_B) / 2.0  # return the average of the two descriptions
-        yi = (A1_y + r * dy_A + B1_y + s * dy_B) / 2.0  # return the average of the two descriptions
+        r = DETinv * (-dy_B * (B1_x - A1_x) + dx_B * (B1_y - A1_y))  # scalar along "self" segment
+        s = DETinv * (-dy_A * (B1_x - A1_x) + dx_A * (B1_y - A1_y)) # scalar along input line
+        xi = (A1_x + r * dx_A + B1_x + s * dx_B) / 2.0 # return description average
+        yi = (A1_y + r * dy_A + B1_y + s * dy_B) / 2.0 # return description average
         return (xi, yi, 1, r, s)
