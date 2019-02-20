@@ -78,37 +78,33 @@ class DQNAgent():
 
             # Sample a mini-batch from replay memory
             minibatch = random.sample(self.memory, min(self.training_batch_size, len(self.memory)))
-            (obs, actions, rewards, obs_next, dones) = ([], [], [], [], [])
-            for (observation, action, reward, obs_next, done) in minibatch:
-                obs.append(observation)
-                actions.append(action)
-                rewards.append(reward)
-                obs_next.append(obs_next)
-                dones.append(done)
-
-            obs = np.array(obs, dtype=np.float)  # (batch_size, observation_size)
-            actions = np.array(actions, dtype=np.int)  # (batch_size, )
-            rewards = np.array(rewards, dtype=np.float)  # (batch_size, )
-            obs_next = np.array(obs_next, dtype=np.float)  # (batch_size, observation_size)
-            dones = np.array(dones, dtype=np.int)  # (batch_size, )
+            obs_arr, action_arr, reward_arr, obs_next_arr, done_arr = [], [], [], [], []
+            for (obs, action, reward, obs_next, done) in minibatch:
+                obs_arr.append(obs)
+                action_arr.append(action)
+                reward_arr.append(reward)
+                obs_next_arr.append(obs_next)
+                done_arr.append(done)
+            obs_arr = np.array(obs_arr, dtype=np.float)  # (batch_size, observation_size)
+            action_arr = np.array(action_arr, dtype=np.int)  # (batch_size, )
+            reward_arr = np.array(reward_arr, dtype=np.float)  # (batch_size, )
+            obs_next_arr = np.array(obs_next_arr, dtype=np.float)  # (batch_size, observation_size)
+            done_arr = np.array(done_arr, dtype=np.int)  # (batch_size, )
 
             # Compute Q estimate
-            Q = self.model.predict(obs)  # (batch_size, action_size)
-            if self.use_target_model:
-                Q_next = self.model_target.predict(obs_next)  # (batch_size, action_size)
-            else:
-                Q_next = self.model.predict(obs_next)  # (batch_size, action_size)
+            Q = self.model.predict(obs_arr)  # (batch_size, action_size)
+            Q_next = self.model.predict(obs_next_arr)  # (batch_size, action_size)
 
             # Compute target Q
             Q_target = Q.copy()  # (batch_size, action_size)
-            for i, (action, reward, done) in enumerate(zip(actions, rewards, dones)):
+            for i, (action, reward, done) in enumerate(zip(action_arr, reward_arr, done_arr)):
                 Q_target[i, action] = reward
                 if not done:
                     Q_target[i, action] += self.gamma * np.amax(Q_next[i,:])
                 loss_avg += np.abs(Q[i, action] - Q_target[i, action])**2
 
             # Train model
-            self.model.fit(obs, Q_target, epochs=self.n_epochs, verbose=self.verbose)
+            self.model.fit(obs_arr, Q_target, epochs=self.n_epochs, verbose=self.verbose)
 
         # Compute average loss
         loss_avg /= self.training_batch_size

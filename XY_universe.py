@@ -77,7 +77,7 @@ def main():
             agent.save_model(modelFile)
 
         # Save animation
-        if save_condition:
+        if False:
             aniFile = os.path.join(outDir, "ani_ep={}.mp4".format(episode))
             print("    -> saving animation", flush=True)
             env.make_animation(states, env, agent.sensors, save_ani=True, filename=aniFile)

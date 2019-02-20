@@ -1,0 +1,4 @@
+episode,iter,reward,loss,epsilon,time
+1,59,58.0,-1,0.2,February 20 2019 11:04:28 AM
+2,66,65.0,-1,0.2,February 20 2019 11:04:29 AM
+3,65,64.0,-1,0.2,February 20 2019 11:04:29 AM
