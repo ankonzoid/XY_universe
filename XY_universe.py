@@ -52,41 +52,39 @@ def main():
         # Generate episode following epsilon-greedy policy
         state = env.reset() # initialize universe
         obs = agent.observe(state, env) # observe universe
-        states, rewards, losses, i = [], [], [], 0
+        states, rewards, i = [], [], 0
         while i < n_iter:
-            action = agent.get_action(obs) # get action
-            state_next, reward, done = env.step(state, action) # evolve universe
-            obs_next = agent.observe(state, env) # observe universe
-            agent.memorize((obs, action, rewards, obs_next, done))  # memorize
-            rewards.append(reward) # collect
-            states.append(state_next) # collect
-            state, obs = state_next, obs_next  # transition
+            action = agent.get_action(obs) # follow policy
+            state_next, reward, done = env.step(state, action) # evolve
+            obs_next = agent.observe(state, env) # observe
+            agent.memorize((obs, action, reward, obs_next, done)) # memorize
+            rewards.append(reward)
+            states.append(state_next)
+            state, obs = state_next, obs_next # transition
             i += 1
-            if done: break # termination condition
-
-        # Print and check if we hit reward threshold
-        print("[ep {}/{}] iter: {}/{}, rew: {:.2f}, mem: {}, eps: {:.3f}".format(episode+1, n_episodes, i+1, n_iter, sum(rewards), len(agent.memory), agent.epsilon), flush=True)
+            if done: break # terminate
 
         n_reward_save += (sum(rewards) >= 2000)
         save_condition = save and (episode == 0 or n_reward_save % 10 == 1)
 
         # Save model
-        if save_condition:
-            modelFile = os.path.join(outDir, "model_ep={}.h5".format(episode))
+        if False:
+            modelFile = os.path.join(outDir, "model_ep={}_rew={:d}.h5".format(episode, reward))
             print("    -> saving agent model", flush=True)
             agent.save_model(modelFile)
 
         # Save animation
         if False:
-            aniFile = os.path.join(outDir, "ani_ep={}.mp4".format(episode))
+            aniFile = os.path.join(outDir, "ani_ep={}_rew={:d}.mp4".format(episode, reward))
             print("    -> saving animation", flush=True)
             env.make_animation(states, env, agent.sensors, save_ani=True, filename=aniFile)
 
-        # Train agents
-        loss = -1
-        if len(agent.memory) >= agent.training_batch_size:
-            loss = agent.train()  # automatically adjusts epsilon
-            print("  -> training agent... sessions={}, batch={:d}, epochs={:d}, loss={:.6f}".format(agent.n_training_sessions, agent.training_batch_size, agent.n_epochs, losses), flush=True)
+        # Train agent
+        loss = agent.train()  # automatically adjusts epsilon
+        #print("  -> training agent... sessions={}, batch={:d}, epochs={:d}, loss={:.6f}".format(agent.n_training_sessions, agent.training_batch_size, agent.n_epochs, loss), flush=True)
+
+        # Print and check if we hit reward threshold
+        print("[ep {}/{}] iter={}/{}, rew={:.0f}, mem={}, eps={:.5f}, loss={:.2f}".format(episode+1, n_episodes, i+1, n_iter, sum(rewards), len(agent.memory), agent.epsilon, loss), flush=True)
 
         # Save log
         if save:
@@ -95,7 +93,7 @@ def main():
             values.extend([sum(rewards), loss, agent.epsilon])
             with open(logFile, ('w' if episode == 0 else 'a')) as f:
                 writer = csv.writer(f)
-                if episode == 0:
+                if episode == 0: # write header
                     header.append("time")
                     writer.writerow(header)
                 values.append(datetime.datetime.now().strftime("%B %d %Y %I:%M:%S %p"))

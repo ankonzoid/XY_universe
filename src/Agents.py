@@ -34,19 +34,19 @@ class DQNAgent():
         self.observation_size = sensors.observation_size
         self.action_size = env.action_size
         self.sensors = sensors
-        self.epsilon_range = [0.2, 0.2] # [max, min]
-        self.epsilon_decay = 1.0 # multiply epsilon max by this after training
+        self.epsilon_range = [0.2, 0.01] # [max, min]
+        self.epsilon_decay = 0.999 # multiply epsilon max by this after training
         self.epsilon = self.epsilon_range[0] # starting exploration parameter
         self.gamma = 0.99  # discount parameter (important)
-        self.hidden_layers = [100, 100]
-        self.L2_regularizer = [1E-5, 1E-5]
+        self.hidden_layers = [40]
+        self.L2_regularizer = [1E-2, 1E-2]
         self.learning_rate = 0.005 # value function learning rate
         self.activation = "relu"
         self.loss = "mse"
         self.n_epochs = 1 # number of training epochs
         self.memory_size = 10000 # experiences stored to memory
         self.training_batch_size = 200 # training batch size
-        self.n_training_sessions = 20 # training sessions per training episode
+        self.n_training_sessions = 20 # sessions per training call
         self.verbose = False
 
         # For experience replay memory training
@@ -73,11 +73,17 @@ class DQNAgent():
 
     # Train our network using replay mini-batch experiences
     def train(self):
+
+        # Check there is enough memory for training
+        if len(self.memory) < self.training_batch_size:
+            return -1.0
+
+        # Train
         loss_avg = 0.0
         for session in range(self.n_training_sessions):
 
             # Sample a mini-batch from replay memory
-            minibatch = random.sample(self.memory, min(self.training_batch_size, len(self.memory)))
+            minibatch = random.sample(self.memory, self.training_batch_size)
             obs_arr, action_arr, reward_arr, obs_next_arr, done_arr = [], [], [], [], []
             for (obs, action, reward, obs_next, done) in minibatch:
                 obs_arr.append(obs)
@@ -91,7 +97,7 @@ class DQNAgent():
             obs_next_arr = np.array(obs_next_arr, dtype=np.float)  # (batch_size, observation_size)
             done_arr = np.array(done_arr, dtype=np.int)  # (batch_size, )
 
-            # Compute Q estimate
+            # Predict Q and Q_next
             Q = self.model.predict(obs_arr)  # (batch_size, action_size)
             Q_next = self.model.predict(obs_next_arr)  # (batch_size, action_size)
 

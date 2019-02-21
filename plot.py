@@ -23,29 +23,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def main():
-    # Settings
-    env_name = "test"
 
-    # Plot
-    lines = read_settings_txt(os.path.join("output", env_name, "settings.txt"))
-    n_agents = 1
-    for line in lines:
-        line_split = line.split(" ")
-        if line_split[0] == "universe.n_agents":
-            n_agents = int(line_split[2])
-
-    D = read_extract_csv(os.path.join("output", env_name, "log.csv"))
+    D = read_extract_csv(os.path.join("output", "log.csv"))
     red = (195/255, 0/255, 0/255)
     blue = (13/255, 28/255, 164/255)
 
-    reward_str_list = ["rew_{}".format(i) for i in range(n_agents)]
-    loss_str_list = ["loss_{}".format(i) for i in range(n_agents)]
-    color_list = [blue, red]  # plots based on reward_str_list and loss_str_list, so this can be long
-    agent_str_list = ["agent-{}".format(i) for i in range(n_agents)]
+    reward_str_list = ["reward"]
+    loss_str_list = ["loss"]
+    color_list = [blue]
+    label_list = ["agent"]
+    env_name = "survival"
 
-    print("Plotting for '{}'...".format(env_name))
-    save_plot("episode", reward_str_list, color_list, agent_str_list, D, env_name, ["episode", "reward"])
-    save_plot("episode", loss_str_list, color_list, agent_str_list, D, env_name, ["episode", "loss"])
+    print("Plotting...")
+    save_plot("episode", reward_str_list, color_list, label_list, D, env_name, ["episode", "reward"])
+    save_plot("episode", loss_str_list, color_list, label_list, D, env_name, ["episode", "loss"])
 
 
 def read_extract_csv(input_file):
@@ -89,7 +80,7 @@ def save_plot(x_name, y_names, colors, labels,
     # Plot
     print("Saving {} vs {}...".format(y_names, x_name))
     for i in range(len(y_names)):
-        y_name, color, label = y_names[i], colors[i],labels[i]
+        y_name, color, label = y_names[i], colors[i], labels[i]
         (x_plot, y_plot) = (np.array(D[x_name], dtype=np.float), np.array(D[y_name], dtype=np.float))
         y_moving_avg = moving_average(y_plot, n_bins)
         plt.plot(x_plot, y_plot, marker=".", markersize=1, color=color, linestyle='None', alpha=0.6)
@@ -102,7 +93,7 @@ def save_plot(x_name, y_names, colors, labels,
     plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 
     # Save
-    output_file = os.path.join("output", env_name, "{}_{}.pdf".format(axis_labels[1], axis_labels[0]))
+    output_file = os.path.join("output", "{}_{}_{}.pdf".format(env_name, axis_labels[1], axis_labels[0]))
     plt.savefig(output_file, bbox_inches='tight')
     plt.clf()
 
