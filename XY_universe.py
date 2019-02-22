@@ -70,17 +70,16 @@ def main():
         n_reward_save += (sum(rewards) >= 2000)
         save_condition = save and (episode == 0 or n_reward_save % 10 == 1)
 
-        # Save model
         if save_condition:
+            # Save model
             modelFile = os.path.join(modelDir, "model_ep={}_rew={}.h5".format(episode, int(sum(rewards))))
             print("    -> saving agent model", flush=True)
             agent.save_model(modelFile)
-
-        # Save animation
-        if save_condition:
+            # Save animation
             aniFile = os.path.join(aniDir, "ani_ep={}_rew={}.mp4".format(episode, int(sum(rewards))))
             print("    -> saving animation", flush=True)
             env.make_animation(states, env, agent.sensors, save_ani=True, filename=aniFile)
+            n_reward_save += 1
 
         # Train agent
         loss = agent.train()  # automatically adjusts epsilon
@@ -101,8 +100,6 @@ def main():
                     writer.writerow(header)
                 values.append(datetime.datetime.now().strftime("%B %d %Y %I:%M:%S %p"))
                 writer.writerow(values)
-
-        exit()
 
 # Driver
 if __name__ == "__main__":
