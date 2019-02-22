@@ -28,23 +28,24 @@ from keras import regularizers
 
 class DQNAgent():
 
-    def __init__(self, env, sensors):
+    def __init__(self, env, sensors, seed=0):
+        random.seed(a=seed)
 
         # DQN agent settings
         self.observation_size = sensors.observation_size
         self.action_size = env.action_size
         self.sensors = sensors
         self.epsilon_range = [0.2, 0.01] # [max, min]
-        self.epsilon_decay = 0.999 # multiply epsilon max by this after training
+        self.epsilon_decay = 0.995 # multiply epsilon max by this after training
         self.epsilon = self.epsilon_range[0] # starting exploration parameter
         self.gamma = 0.99  # discount parameter (important)
-        self.hidden_layers = [40]
-        self.L2_regularizer = [1E-2, 1E-2]
+        self.hidden_layers = [30, 30, 30]
+        self.L2_regularizer = [1E-2, 1E-2, 1E-2]
         self.learning_rate = 0.005 # value function learning rate
         self.activation = "relu"
         self.loss = "mse"
         self.n_epochs = 1 # number of training epochs
-        self.memory_size = 10000 # experiences stored to memory
+        self.memory_size = 50000 # experiences stored to memory
         self.training_batch_size = 200 # training batch size
         self.n_training_sessions = 20 # sessions per training call
         self.verbose = False
@@ -57,18 +58,19 @@ class DQNAgent():
 
     # Make observation of state
     def observe(self, state, env):
-        obs = self.sensors.sense(state, env)
+        obs, _ = self.sensors.sense(state, 0, env)
         return obs
 
     # Follow epsilon-greedy policy
     def get_action(self, obs):
         obs_reshaped = np.reshape(obs, [1, len(obs)])
         self.epsilon = max(self.epsilon_range)
-        if np.random.rand() <= self.epsilon: # explore
-            action = np.random.choice(list(range(self.action_size)))
+        rand = random.uniform(0, 1)
+        if rand <= self.epsilon: # explore
+            action = random.choice(list(range(self.action_size)))
         else: # exploit
             Qpred = self.model.predict(obs_reshaped)[0]
-            action = np.random.choice(np.flatnonzero(Qpred==np.amax(Qpred)))
+            action = random.choice(np.flatnonzero(Qpred==np.amax(Qpred)))
         return action
 
     # Train our network using replay mini-batch experiences
@@ -91,11 +93,11 @@ class DQNAgent():
                 reward_arr.append(reward)
                 obs_next_arr.append(obs_next)
                 done_arr.append(done)
-            obs_arr = np.array(obs_arr, dtype=np.float)  # (batch_size, observation_size)
-            action_arr = np.array(action_arr, dtype=np.int)  # (batch_size, )
-            reward_arr = np.array(reward_arr, dtype=np.float)  # (batch_size, )
-            obs_next_arr = np.array(obs_next_arr, dtype=np.float)  # (batch_size, observation_size)
-            done_arr = np.array(done_arr, dtype=np.int)  # (batch_size, )
+            obs_arr = np.array(obs_arr, dtype=np.float)
+            action_arr = np.array(action_arr, dtype=np.int)
+            reward_arr = np.array(reward_arr, dtype=np.float)
+            obs_next_arr = np.array(obs_next_arr, dtype=np.float)
+            done_arr = np.array(done_arr, dtype=np.int)
 
             # Predict Q and Q_next
             Q = self.model.predict(obs_arr)  # (batch_size, action_size)

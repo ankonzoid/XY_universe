@@ -28,7 +28,7 @@ from matplotlib.patches import Wedge
 
 class Environment():
 
-    def __init__(self, n_good, n_bad):
+    def __init__(self, n_good, n_bad, seed=0):
 
         # Universe settings
         self.name = "survival"
@@ -39,7 +39,6 @@ class Environment():
         self.box_half_length = 2.0
         self.particle_mode = "none"  # "none", "chase_agent"
         self.add_wall_collisions = True
-        self.add_particle_collisions = False
         self.add_agent_interactions = True
         self.state_init, self.pid_agents = self._init_state(n_good, n_bad)
 
@@ -121,49 +120,6 @@ class Environment():
         state_next[:,pind_y] += state_next[:,pind_vy] * self.dt  # update y-coordinates
 
         # ======================================================
-        # Add particle-particle collisions
-        # ======================================================
-        if self.add_particle_collisions:
-            # Find the radius of every object
-            radius_state = self.radius_particles * np.ones(len(state_next), dtype=np.float)
-            radius_state[pid_agents] = self.radius_agent
-            # Simular particle-particle collisions
-            D = squareform(pdist(state_next[:, pind_xy]))  # N x N distance matrix
-            C = np.add.outer(radius_state, radius_state)  # N x N criterion matrix
-            plist1, plist2 = np.where(D < C)
-            unique = (plist1 < plist2)  # unique p-p with ind1 < ind2
-            plist1, plist2 = plist1[unique], plist2[unique]  # unique particle list of p-p
-            for (p1, p2) in zip(plist1, plist2):  # update velocities of colliding particle pairs
-                # Common parameters
-                x1, x2 = state_next[p1, pind_xy], state_next[p2, pind_xy]
-                v1, v2 = state_next[p1, pind_vxy], state_next[p2, pind_vxy]
-                r1, r2, m1, m2 = radius_state[p1], radius_state[p2], self.mass, self.mass
-                dist_12 = np.linalg.norm(x1 - x2)
-                d_12_unit = (x1 - x2) / dist_12
-                # Repositioning particles so they 'just' touch
-                v1_normal = np.dot(v1, d_12_unit) * d_12_unit
-                v2_normal = np.dot(v2, d_12_unit) * d_12_unit
-                v1_tangent = v1 - v1_normal
-                v2_tangent = v2 - v2_normal
-                L = r1 + r2 - dist_12  # overlap parameter
-                v12_normal_norm = np.linalg.norm(v1_normal - v2_normal)
-                s_backwards = -L / v12_normal_norm
-                x1 += s_backwards * v1_normal
-                x2 += s_backwards * v2_normal
-                # Perform particle collision equations after repositioning
-                u1 = np.dot(v1_normal, d_12_unit)
-                u2 = np.dot(v2_normal, d_12_unit)
-                v1_normal = (((m1 - m2) * u1 + 2 * m2 * u2) / (m1 + m2)) * d_12_unit
-                v2_normal = (((m2 - m1) * u2 + 2 * m1 * u1) / (m1 + m2)) * d_12_unit
-                v1 = v1_normal + v1_tangent
-                v2 = v2_normal + v2_tangent
-                # Update state
-                state_next[p1, pind_xy] = x1
-                state_next[p2, pind_xy] = x2
-                state_next[p1, pind_vxy] = v1
-                state_next[p2, pind_vxy] = v2
-
-        # ======================================================
         # Add particle-wall interactions
         # ======================================================
         if self.add_wall_collisions:
@@ -216,6 +172,7 @@ class Environment():
         pind_y = self.state_dict["y"]
         pind_xy = [pind_x, pind_y]
         pind_type = self.state_dict["type"]
+        pid_agents = self.pid_agents
 
         # Animation bounds
         x_min, x_max = -box_half_length, box_half_length
@@ -276,50 +233,51 @@ class Environment():
             # =================================
             # Draw sensors
             # =================================
+            for i_agent, pid_agent in enumerate(pid_agents):
 
-            # Make observation
-            state_agent = states[i][0]
-            sector_observation, sectors = sensors.sense(states[i], env)
+                # Make observation
+                state_agent = states[i][pid_agent]
+                sector_observation, sectors = sensors.sense_sensors(states[i], pid_agent, env)
 
-            # Draw sectors
-            sensor_patches, color_patches = list(), list()
-            for j, (sector_obs, sector) in enumerate(zip(sector_observation, sectors)):
+                # Draw sectors
+                sensor_patches, color_patches = list(), list()
+                for j, (sector_obs, sector) in enumerate(zip(sector_observation, sectors)):
 
-                # Type of wedge (based on which one has lowest sector_obs)
-                all_same_obs = all(x == 1.0 for x in sector_obs)  # check if all == 1
-                idx_type_min_obs = sector_obs.index(min(sector_obs))
-                type_min_obs = self.types_detect[idx_type_min_obs]
+                    # Type of wedge (based on which one has lowest sector_obs)
+                    all_same_obs = all([x == 1.0 for x in sector_obs])  # check if all == 1
+                    idx_type_min_obs = sector_obs.index(min(sector_obs))
+                    type_min_obs = self.types_detect[idx_type_min_obs]
 
-                # Set theta (in degrees)
-                radians_to_degrees = 180 / np.pi
-                if j == 0:
-                    theta_1 = 0 * radians_to_degrees
-                    theta_2 = sectors[j] * radians_to_degrees
-                else:
-                    theta_1 = sectors[j-1] * radians_to_degrees
-                    theta_2 = sectors[j] * radians_to_degrees
+                    # Set theta (in degrees)
+                    radians_to_degrees = 180 / np.pi
+                    if j == 0:
+                        theta_1 = 0 * radians_to_degrees
+                        theta_2 = sectors[j] * radians_to_degrees
+                    else:
+                        theta_1 = sectors[j-1] * radians_to_degrees
+                        theta_2 = sectors[j] * radians_to_degrees
 
-                # Draw wedge
-                sensor_obs = (sector_obs[idx_type_min_obs] * (sector_length - radius_agent)) + radius_agent
-                obs_sensor_length = sensor_obs if sensor_obs >= 0 else 0.0
-                wedge = Wedge((state_agent[pind_x], state_agent[pind_y]), obs_sensor_length, theta_1, theta_2, alpha=0.5)
+                    # Draw wedge
+                    sensor_obs = (sector_obs[idx_type_min_obs] * (sector_length - radius_agent)) + radius_agent
+                    obs_sensor_length = sensor_obs if sensor_obs >= 0 else 0.0
+                    wedge = Wedge((state_agent[pind_x], state_agent[pind_y]), obs_sensor_length, theta_1, theta_2, alpha=0.5)
 
-                # Append wedge shape
-                sensor_patches.append(wedge)
+                    # Append wedge shape
+                    sensor_patches.append(wedge)
 
-                # Append wedge color
-                if all_same_obs:
-                    color_patches.append(grey + (1,))
-                elif type_min_obs in sensor_type_color_dict.keys():
-                    color_patches.append(sensor_type_color_dict[type_min_obs] + (1,))
-                else:
-                    sys.exit("err: Invalid type sensed!")
+                    # Append wedge color
+                    if all_same_obs:
+                        color_patches.append(grey + (1,))
+                    elif type_min_obs in sensor_type_color_dict.keys():
+                        color_patches.append(sensor_type_color_dict[type_min_obs] + (1,))
+                    else:
+                        sys.exit("err: Invalid type sensed!")
 
-            # Sensor sectors
-            color_patches = np.array(color_patches)
-            coll_sensors = mc.PatchCollection(sensor_patches, facecolors=color_patches, edgecolors=almost_black, linewidth=1, alpha=0.5, zorder=1)
-            ax.add_collection(coll_sensors)
-            coll_list.append(coll_sensors)
+                # Sensor sectors
+                color_patches = np.array(color_patches)
+                coll_sensors = mc.PatchCollection(sensor_patches, facecolors=color_patches, edgecolors=almost_black, linewidth=1, alpha=0.5, zorder=1)
+                ax.add_collection(coll_sensors)
+                coll_list.append(coll_sensors)
 
             return tuple(coll_list)
 
@@ -388,6 +346,4 @@ class Environment():
         if n_agents > 0:
             state[:n_agents,pind_vx], state[:n_agents,pind_vy] = 0.0, 0.0  # set zero agent velocities
 
-        # Reset seed randomly
-        np.random.seed(seed=None)
         return state, pid_agents

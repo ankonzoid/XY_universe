@@ -20,7 +20,7 @@
  limitations under the License.
 
 """
-import os, csv, datetime
+import os, csv, datetime, random
 from src.Environment import Environment # agent environment based on sensors
 from src.Sensors import Sensors # sensors for universe
 from src.Agents import DQNAgent
@@ -33,13 +33,16 @@ def main():
     # ====================
     # Settings
     # ====================
-    env = Environment(n_good=0, n_bad=110)
-    agent = DQNAgent(env=env, sensors=Sensors(n_sectors=4, sector_radius=1.0))
+    env = Environment(n_good=0, n_bad=110, seed=0)
+    agent = DQNAgent(env=env, sensors=Sensors(n_sectors=4, sector_radius=1.0), seed=0)
 
     save = True
     outDir = os.path.join(os.path.dirname(__file__), "output")
+    modelDir = os.path.join(outDir, "models")
+    aniDir = os.path.join(outDir, "animations")
     _make_dir(outDir)
-    logFile = os.path.join(outDir, "log.csv")
+    _make_dir(modelDir)
+    _make_dir(aniDir)
 
     # ====================
     # Run
@@ -68,20 +71,19 @@ def main():
         save_condition = save and (episode == 0 or n_reward_save % 10 == 1)
 
         # Save model
-        if False:
-            modelFile = os.path.join(outDir, "model_ep={}_rew={:d}.h5".format(episode, reward))
+        if save_condition:
+            modelFile = os.path.join(modelDir, "model_ep={}_rew={}.h5".format(episode, int(sum(rewards))))
             print("    -> saving agent model", flush=True)
             agent.save_model(modelFile)
 
         # Save animation
-        if False:
-            aniFile = os.path.join(outDir, "ani_ep={}_rew={:d}.mp4".format(episode, reward))
+        if save_condition:
+            aniFile = os.path.join(aniDir, "ani_ep={}_rew={}.mp4".format(episode, int(sum(rewards))))
             print("    -> saving animation", flush=True)
             env.make_animation(states, env, agent.sensors, save_ani=True, filename=aniFile)
 
         # Train agent
         loss = agent.train()  # automatically adjusts epsilon
-        #print("  -> training agent... sessions={}, batch={:d}, epochs={:d}, loss={:.6f}".format(agent.n_training_sessions, agent.training_batch_size, agent.n_epochs, loss), flush=True)
 
         # Print and check if we hit reward threshold
         print("[ep {}/{}] iter={}/{}, rew={:.0f}, mem={}, eps={:.5f}, loss={:.2f}".format(episode+1, n_episodes, i+1, n_iter, sum(rewards), len(agent.memory), agent.epsilon, loss), flush=True)
@@ -91,6 +93,7 @@ def main():
             header, values = ["episode", "iter"], [episode+1, i+1]
             header.extend(["reward", "loss", "epsilon"])
             values.extend([sum(rewards), loss, agent.epsilon])
+            logFile = os.path.join(outDir, "log.csv")
             with open(logFile, ('w' if episode == 0 else 'a')) as f:
                 writer = csv.writer(f)
                 if episode == 0: # write header
@@ -98,6 +101,8 @@ def main():
                     writer.writerow(header)
                 values.append(datetime.datetime.now().strftime("%B %d %Y %I:%M:%S %p"))
                 writer.writerow(values)
+
+        exit()
 
 # Driver
 if __name__ == "__main__":
