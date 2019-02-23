@@ -18,91 +18,34 @@
  limitations under the License.
 
 """
-import os, csv, sys
+import os, csv
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
 def main():
-
-    D = read_extract_csv(os.path.join("output", "log.csv"))
-    red = (195/255, 0/255, 0/255)
-    blue = (13/255, 28/255, 164/255)
-
-    reward_str_list = ["reward"]
-    loss_str_list = ["loss"]
-    color_list = [blue]
-    label_list = ["agent"]
-    env_name = "survival"
-
+    df = pd.read_csv(os.path.join("output", "log.csv"))
     print("Plotting...")
-    save_plot("episode", reward_str_list, color_list, label_list, D, env_name, ["episode", "reward"])
-    save_plot("episode", loss_str_list, color_list, label_list, D, env_name, ["episode", "loss"])
+    save_plot(["episode", "reward"], df, color=(13/255, 28/255, 164/255), n_bins=50)
+    save_plot(["episode", "loss"], df, color=(195/255, 0/255, 0/255), n_bins=50)
 
-
-def read_extract_csv(input_file):
-
-    def _read_csv(csv_filename):
-        FID = open(csv_filename, 'rt')
-        try:
-            reader = csv.reader(FID)
-            data_mat = []
-            column_headers = []
-            for i, row in enumerate(reader):
-                if i == 0:
-                    column_headers = row
-                else:
-                    data_mat.append(row)
-            column_headers = np.array(column_headers)
-            data_mat = np.array(data_mat)
-            n_rows, n_columns = len(data_mat), len(column_headers)
-        finally:
-            FID.close()
-        return (column_headers, data_mat, n_rows, n_columns)
-
-    D = {}
-    headers, M, n_rows, n_columns = _read_csv(input_file)  # M = numpy array of strings
-    for i, header in enumerate(headers):
-        D[header] = M[:, i]
-    return D
-
-def save_plot(x_name, y_names, colors, labels,
-              D, env_name, axis_labels, n_bins=50):
-
-    def moving_average(a, n_bins):
+def save_plot(columns, df, color, n_bins):
+    x_name, y_name = columns[0], columns[1]
+    def windowed_average(a, n_bins):
         ret = np.cumsum(a, dtype=float)
         ret[n_bins:] = ret[n_bins:] - ret[:-n_bins]
         return ret[n_bins - 1:] / n_bins
-
-    # Moving average bin size
-    if len(D[x_name]) <= n_bins:
-        sys.exit("We have n_bin_ma = {} and not enough data points!".format(n_bins))
-
-    # Plot
-    print("Saving {} vs {}...".format(y_names, x_name))
-    for i in range(len(y_names)):
-        y_name, color, label = y_names[i], colors[i], labels[i]
-        (x_plot, y_plot) = (np.array(D[x_name], dtype=np.float), np.array(D[y_name], dtype=np.float))
-        y_moving_avg = moving_average(y_plot, n_bins)
-        plt.plot(x_plot, y_plot, marker=".", markersize=1, color=color, linestyle='None', alpha=0.6)
-        plt.plot(x_plot[(n_bins - 1):], y_moving_avg, "-", color=color, label=label)
-
-    # Settings
-    plt.title(env_name)
-    plt.xlabel(axis_labels[0])
-    plt.ylabel(axis_labels[1])
-    plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-
-    # Save
-    output_file = os.path.join("output", "{}_{}_{}.pdf".format(env_name, axis_labels[1], axis_labels[0]))
+    assert len(df[x_name].values) > n_bins
+    print("Saving {} vs {}...".format(x_name, y_name))
+    x_plot, y_plot = df[x_name].values, df[y_name].values
+    y_moving_avg = windowed_average(y_plot, n_bins)
+    plt.plot(x_plot, y_plot, marker=".", markersize=1, color=color, linestyle='None', alpha=0.6)
+    plt.plot(x_plot[(n_bins - 1):], y_moving_avg, "-", color=color)
+    plt.xlabel(x_name)
+    plt.ylabel(y_name)
+    output_file = os.path.join("output", "{}_{}.pdf".format(y_name, x_name))
     plt.savefig(output_file, bbox_inches='tight')
     plt.clf()
-
-def read_settings_txt(text_filename):
-    with open(text_filename) as f:
-        lines = f.readlines()
-    lines = [x.strip() for x in lines]
-    return lines
-
 
 # Driver
 if __name__ == "__main__":

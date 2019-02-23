@@ -28,8 +28,7 @@ from keras import regularizers
 
 class DQNAgent():
 
-    def __init__(self, env, sensors, seed=0):
-        random.seed(a=seed)
+    def __init__(self, env, sensors):
 
         # DQN agent settings
         self.observation_size = sensors.observation_size
@@ -39,15 +38,15 @@ class DQNAgent():
         self.epsilon_decay = 0.995 # multiply epsilon max by this after training
         self.epsilon = self.epsilon_range[0] # starting exploration parameter
         self.gamma = 0.99  # discount parameter (important)
-        self.hidden_layers = [30, 30, 30]
-        self.L2_regularizer = [1E-2, 1E-2, 1E-2]
+        self.hidden_layers = [100, 100]
+        self.L2_regularizer = [1E-6] * len(self.hidden_layers)
         self.learning_rate = 0.005 # value function learning rate
         self.activation = "relu"
         self.loss = "mse"
-        self.n_epochs = 1 # number of training epochs
-        self.memory_size = 50000 # experiences stored to memory
-        self.training_batch_size = 200 # training batch size
-        self.n_training_sessions = 20 # sessions per training call
+        self.n_epochs = 1 # epochs per fit() call
+        self.memory_size = 50000 # max number of experiences stored in memory
+        self.batch_size = 200 # training batch size
+        self.n_training_sessions = 50 # sessions per train() call
         self.verbose = False
 
         # For experience replay memory training
@@ -77,7 +76,7 @@ class DQNAgent():
     def train(self):
 
         # Check there is enough memory for training
-        if len(self.memory) < self.training_batch_size:
+        if len(self.memory) < self.batch_size:
             return -1.0
 
         # Train
@@ -85,7 +84,7 @@ class DQNAgent():
         for session in range(self.n_training_sessions):
 
             # Sample a mini-batch from replay memory
-            minibatch = random.sample(self.memory, self.training_batch_size)
+            minibatch = random.sample(self.memory, self.batch_size)
             obs_arr, action_arr, reward_arr, obs_next_arr, done_arr = [], [], [], [], []
             for (obs, action, reward, obs_next, done) in minibatch:
                 obs_arr.append(obs)
@@ -115,7 +114,7 @@ class DQNAgent():
             self.model.fit(obs_arr, Q_target, epochs=self.n_epochs, verbose=self.verbose)
 
         # Compute average loss
-        loss_avg /= self.training_batch_size
+        loss_avg /= self.batch_size
         loss_avg /= self.n_training_sessions
 
         # Decay agent epsilon max value

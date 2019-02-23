@@ -28,7 +28,7 @@ from matplotlib.patches import Wedge
 
 class Environment():
 
-    def __init__(self, n_good, n_bad, seed=0):
+    def __init__(self, n_good, n_bad):
 
         # Universe settings
         self.name = "survival"
@@ -306,8 +306,7 @@ class Environment():
                  (corner_3, corner_4), (corner_4, corner_1)]
         return walls
 
-    def _init_state(self, n_good, n_bad, seed=0):
-        np.random.seed(seed)
+    def _init_state(self, n_good, n_bad):
         pind = {"x": 0, "y": 1, "vx": 2, "vy": 3, "type": 4}
         (pind_xy, pind_vxy) = ([pind["x"], pind["y"]], [pind["vx"], pind["vy"]])
         (pind_vx, pind_vy, pind_type) = (pind["vx"], pind["vy"], pind["type"])
