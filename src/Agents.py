@@ -2,21 +2,6 @@
 
  Agents.py  (author: Anson Wong / git: ankonzoid)
 
-
- Copyright 2019 Anson Wong
-
- Licensed under the Apache License, Version 2.0 (the "License");
- you may not use this file except in compliance with the License.
- You may obtain a copy of the License at
-
-     http://www.apache.org/licenses/LICENSE-2.0
-
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
-
 """
 import numpy as np
 import random
@@ -34,19 +19,19 @@ class DQNAgent():
         self.observation_size = sensors.observation_size
         self.action_size = env.action_size
         self.sensors = sensors
-        self.epsilon_range = [0.2, 0.01] # [max, min]
-        self.epsilon_decay = 0.995 # multiply epsilon max by this after training
+        self.epsilon_range = [0.20, 0.20] # [max, min]
+        self.epsilon_decay = 0.99 # multiply epsilon max by this after training
         self.epsilon = self.epsilon_range[0] # starting exploration parameter
         self.gamma = 0.99  # discount parameter (important)
-        self.hidden_layers = [100, 100]
+        self.hidden_layers = [20, 20]
         self.L2_regularizer = [1E-6] * len(self.hidden_layers)
         self.learning_rate = 0.005 # value function learning rate
         self.activation = "relu"
         self.loss = "mse"
-        self.n_epochs = 1 # epochs per fit() call
-        self.memory_size = 50000 # max number of experiences stored in memory
-        self.batch_size = 200 # training batch size
+        self.memory_size = 20000 # max number of experiences stored in memory
         self.n_training_sessions = 50 # sessions per train() call
+        self.batch_size = 200 # training batch size
+        self.n_epochs = 1 # epochs per fit() call
         self.verbose = False
 
         # For experience replay memory training

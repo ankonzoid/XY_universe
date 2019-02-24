@@ -2,25 +2,9 @@
 
  Environment.py  (author: Anson Wong / git: ankonzoid)
 
-
- Copyright 2019 Anson Wong
-
- Licensed under the Apache License, Version 2.0 (the "License");
- you may not use this file except in compliance with the License.
- You may obtain a copy of the License at
-
-     http://www.apache.org/licenses/LICENSE-2.0
-
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
-
 """
 import sys
 import numpy as np
-from scipy.spatial.distance import pdist, squareform
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import matplotlib.collections as mc
@@ -37,7 +21,6 @@ class Environment():
         self.dv_agent, self.v_particles = 0.01, 0.05
         self.radius_agent, self.radius_particles = 0.05, 0.1
         self.box_half_length = 2.0
-        self.particle_mode = "none"  # "none", "chase_agent"
         self.add_wall_collisions = True
         self.add_agent_interactions = True
         self.state_init, self.pid_agents = self._init_state(n_good, n_bad)
@@ -96,19 +79,6 @@ class Environment():
             state_next[0, pind_vx] += -self.dv_agent
         else:
             sys.exit("Invalid action!")
-
-        # ===========================
-        # Perform particle actions
-        # ===========================
-        if self.particle_mode == "none":
-            pass
-        elif self.particle_mode == "chase_agent":  # all particles chase agent
-            pid_chase = 0  # chase index
-            state_next[n_agents:,pind_vxy] = state_next[pid_chase,pind_xy] - state_next[n_agents:,pind_xy]  # chase direction
-            v_norm_particles = np.linalg.norm(state_next[n_agents:, pind_vxy], axis=1)  # norm of all velocities
-            state_next[n_agents:,pind_vxy] = self.v_particles * np.divide(state_next[n_agents:,pind_vxy], v_norm_particles[:,None])
-        else:
-            sys.exit("err: Invalid particle mode of {}".format(self.particle_mode))
 
         # ======================================================
         #
