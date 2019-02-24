@@ -1,17 +1,10 @@
 # XY Universe: a 2D particle survival environment
 
-We provide here XY Universe: a 2D particle survival environment for training your Deep Reinforcement Learning agents to stay alive as long as possible by avoiding collisions with "bad" particles. The agent and the "bad" particles are confined to a 2D box, move with random constant velocity, and experience elastic collisions against the 2D box walls. A Deep Q-Network agent implementation is provided for immediate usage and demonstration of the environment. This survival environment was inspired by [Karpathy's Waterworld environment](http://cs.stanford.edu/people/karpathy/reinforcejs/waterworld.html).
+We provide here XY Universe: a 2D particle survival environment for training your Deep Reinforcement Learning agents to stay alive as long as possible by avoiding collisions with "bad" particles. The agent and the "bad" particles are confined to a 2D box, move with random constant velocity, and experience elastic collisions against the 2D box walls. A Deep Q-Network agent implementation is provided for immediate usage and demonstration of the environment. The agent reward scheme is: +1 for each time step alive, and -100 for "bad" particle collision. The episode termination condition is: agent collision with any "bad" particle. This survival environment was inspired by [Karpathy's Waterworld environment](http://cs.stanford.edu/people/karpathy/reinforcejs/waterworld.html). 
 
 <p align="center">
 <img src="gifs/XY_universe.gif" width="50%">
 </p>
-
-Agent reward scheme: 
-* +1 for every time step alive
-* -100 for colliding into "bad" particle
-
-Episode termination condition:
-* Agent collision with any "bad" particle
 
 
 ### Usage
