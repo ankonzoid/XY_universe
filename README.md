@@ -1,9 +1,11 @@
-# XY Universe: 2D particle survival environment
+# XY Universe: a 2D particle survival environment
 
-We provide here XY Universe, a 2D particle survival environment for training your DRL agents to stay alive as long as possible by avoiding collisions with "bad" particles. The agent and the "bad" particles are confined to a 2D box, move with random constant velocity, and experience elastic collisions against the 2D box walls. This survival environment was inspired by [Karpathy's Waterworld environment](http://cs.stanford.edu/people/karpathy/reinforcejs/waterworld.html).
+We provide here XY Universe: a 2D particle survival environment for training your DRL agents to stay alive as long as possible by avoiding collisions with "bad" particles. The agent and the "bad" particles are confined to a 2D box, move with random constant velocity, and experience elastic collisions against the 2D box walls. This survival environment was inspired by [Karpathy's Waterworld environment](http://cs.stanford.edu/people/karpathy/reinforcejs/waterworld.html).
+
+A DQN agent implementation is provided for our finite continuous sensor observation space, and discretized particle accelertion output space.
 
 <p align="center">
-<img src="gifs/XY_universe.gif" width="60%">
+<img src="gifs/XY_universe.gif" width="50%">
 </p>
 
 #### Agent reward scheme: 
@@ -15,10 +17,11 @@ We provide here XY Universe, a 2D particle survival environment for training you
 
 ### Usage
 
-Run
 ```
 python3 XY_universe.py
 ```
+
+The output will be placed in the `output` directory, and will consist of agent models (`.h5`) and animations (`.m4`) of the most successful episodes, as well as run logs of the entire simulation (`.csv`, `.pdf`).
 
 ### Libraries required
 
